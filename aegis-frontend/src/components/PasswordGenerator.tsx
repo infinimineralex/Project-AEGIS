@@ -16,8 +16,9 @@ const PasswordGenerator: React.FC<Props> = ({ setPassword }) => {
   const [showOptions, setShowOptions] = useState<boolean>(false);
   const [dropdownPos, setDropdownPos] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
 
-  // Ref for the settings button
+  // Refs for settings button and dropdown container
   const settingsRef = useRef<HTMLButtonElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Update dropdown position when toggling options or scrolling (TODO: make the scrolling snappier)
   useEffect(() => {
@@ -38,6 +39,27 @@ const PasswordGenerator: React.FC<Props> = ({ setPassword }) => {
     return () => {
       window.removeEventListener('scroll', updatePosition);
       window.removeEventListener('resize', updatePosition);
+    };
+  }, [showOptions]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (showOptions) {
+        if (
+          settingsRef.current?.contains(event.target as Node) ||
+          dropdownRef.current?.contains(event.target as Node)
+        ) {
+          return;
+        }
+        setShowOptions(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [showOptions]);
 
@@ -92,6 +114,7 @@ const PasswordGenerator: React.FC<Props> = ({ setPassword }) => {
       {showOptions &&
         ReactDOM.createPortal(
           <motion.div
+            ref={dropdownRef}
             initial={{ opacity: 0, y: -5 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -5 }}
