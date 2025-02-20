@@ -172,7 +172,7 @@ const Home: React.FC = () => {
           </motion.div>
         </section>
 
-        {/* Call to Action Section (Unchanged) */}
+        {/* Call to Action Section */}
         <section className="mt-16">
           <motion.div
             className="bg-gradient-to-r from-blue-500 to-red-500 p-8 rounded-lg shadow-lg text-center"
