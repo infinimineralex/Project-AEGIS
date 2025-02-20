@@ -5,6 +5,7 @@ import CryptoJS from 'crypto-js';
 import { useNavigate } from 'react-router-dom';
 import PasswordGenerator from '../components/PasswordGenerator';
 import { motion } from 'framer-motion';
+import { FiEye, FiEyeOff, FiCopy } from 'react-icons/fi';
 
 interface Credential {
   id: number;
@@ -35,6 +36,9 @@ const Dashboard: React.FC = () => {
 
   // State to manage password visibility
   const [visiblePasswordIds, setVisiblePasswordIds] = useState<Set<number>>(new Set());
+
+  // New state to toggle password visibility in the form
+  const [showFormPassword, setShowFormPassword] = useState<boolean>(false);
 
   // Fetch credentials from backend
   const fetchCredentials = async () => {
@@ -273,7 +277,7 @@ const Dashboard: React.FC = () => {
                 </label>
                 <div className="flex items-center space-x-2 relative z-50">
                   <input
-                    type="password"
+                    type={showFormPassword ? 'text' : 'password'}
                     name="password"
                     id="password"
                     required
@@ -281,6 +285,16 @@ const Dashboard: React.FC = () => {
                     onChange={handleChange}
                     className="mt-1 flex-1 block w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
                   />
+                  <motion.button
+                    type="button"
+                    onClick={() => setShowFormPassword((prev) => !prev)}
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                    className="flex items-center justify-center w-12 h-12 bg-indigo-600 text-white rounded-md shadow-md hover:bg-indigo-700 focus:outline-none"
+                    title={showFormPassword ? 'Hide Password' : 'Show Password'}
+                  >
+                    {showFormPassword ? <FiEyeOff size={20} /> : <FiEye size={20} />}
+                  </motion.button>
                   <PasswordGenerator
                     setPassword={(pwd: string) =>
                       setForm((prev) => ({ ...prev, password: pwd }))
@@ -361,20 +375,30 @@ const Dashboard: React.FC = () => {
                           <div className="flex items-center space-x-2">
                             <span
                               onClick={() => togglePasswordVisibility(cred.id)}
-                              className={`px-2 py-1 rounded-md cursor-pointer ${
+                              className={`cursor-pointer px-2 py-1 rounded-md ${
                                 visiblePasswordIds.has(cred.id)
                                   ? 'bg-green-500 text-white'
                                   : 'bg-gray-500 text-gray-300'
                               }`}
+                              title="Toggle visibility"
                             >
                               {visiblePasswordIds.has(cred.id) ? cred.password : '••••••••'}
                             </span>
+                            <button
+                              onClick={() => {
+                                navigator.clipboard.writeText(cred.password);
+                              }}
+                              className="text-blue-400 hover:text-blue-300"
+                              title="Copy Password"
+                            >
+                              <FiCopy size={18} />
+                            </button>
                             <button
                               onClick={() => togglePasswordVisibility(cred.id)}
                               className="text-blue-400 hover:text-blue-300"
                             >
                               {visiblePasswordIds.has(cred.id) ? 'Hide' : 'Show'}
-                            </button>
+                            </button> 
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">{cred.notes}</td>
