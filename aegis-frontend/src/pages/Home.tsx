@@ -126,7 +126,7 @@ const Home: React.FC = () => {
               <FaTachometerAlt className="mx-auto h-16 w-16 mb-4 text-white-500" />
               <h3 className="text-xl font-semibold mb-2 text-white">Fast and Reliable</h3>
               <p className="text-gray-300">
-                Experience lightning-fast access to your passwords and credentials across all your devices with our optimized infrastructure.
+                Experience soon-to-be lightning-fast access to your passwords and credentials across all your devices with our optimized infrastructure.
               </p>
             </motion.div>
           </div>
@@ -165,7 +165,7 @@ const Home: React.FC = () => {
                 Aegis uses robust encryption standards to secure your passwords. Each password is encrypted using your unique master key directly on your device, ensuring that only you can access your sensitive information.
               </p>
               <p className="text-lg text-gray-100">
-                With seamless synchronization across devices, your credentials are accessible wherever you go, without compromising security.
+                With planned seamless synchronization across devices, your credentials will be accessible wherever you go, without compromising security.
               </p>
             </motion.div>
           </div>
