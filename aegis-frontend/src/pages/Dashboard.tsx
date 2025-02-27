@@ -366,7 +366,7 @@ const Dashboard: React.FC = () => {
                     {credentials.map((cred) => (
                       <motion.tr
                         key={cred.id}
-                        //whileHover={{ scale: 1.02 }}
+                        //whileHover={{ scale: 1.02 }} scale this down
                         //transition={{ duration: 0.3 }}
                       >
                         <td className="px-6 py-4 whitespace-nowrap">{cred.website}</td>
