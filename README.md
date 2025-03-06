@@ -25,7 +25,7 @@ A powerful, lightweight password manager you will actually *want* to use.
 
 ## Introduction
 
-Welcome to **Aegis**—your trusted companion in securing your digital life. **Aegis** offers a seamless, secure, and user-friendly solution to store, generate, and manage your passwords with ease.
+Welcome to **Aegis**—your trusted companion in securing your digital life. **Aegis** offers a seamless, secure, and user-friendly solution to store, generate, and manage your passwords with ease. Electron coming soon!
 
 ---
 
