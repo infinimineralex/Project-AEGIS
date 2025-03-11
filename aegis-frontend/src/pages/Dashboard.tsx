@@ -4,8 +4,9 @@ import { AuthContext } from '../contexts/AuthContext';
 import CryptoJS from 'crypto-js';
 import { useNavigate } from 'react-router-dom';
 import PasswordGenerator from '../components/PasswordGenerator';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { FiEye, FiEyeOff, FiCopy } from 'react-icons/fi';
+import Notification from '../components/Notification';
 
 interface Credential {
   id: number;
@@ -39,6 +40,9 @@ const Dashboard: React.FC = () => {
 
   // New state to toggle password visibility in the form
   const [showFormPassword, setShowFormPassword] = useState<boolean>(false);
+
+  // New state for notification
+  const [notification, setNotification] = useState<string>('');
 
   // Fetch credentials from backend
   const fetchCredentials = async () => {
@@ -123,9 +127,9 @@ const Dashboard: React.FC = () => {
             },
           }
         );
-
         setEditing(false);
         setCurrentId(null);
+        setNotification('Credential updated successfully.');
       } else {
         // Create new credential
         await api.post(
@@ -142,6 +146,7 @@ const Dashboard: React.FC = () => {
             },
           }
         );
+        setNotification('Credential added successfully.');
       }
 
       // Refresh credentials
@@ -183,6 +188,7 @@ const Dashboard: React.FC = () => {
       });
 
       fetchCredentials();
+      setNotification('Credential deleted successfully.');
     } catch (err: any) {
       setError('Failed to delete credential.');
       console.error(err);
@@ -425,6 +431,9 @@ const Dashboard: React.FC = () => {
           </motion.div>
         </div>
       </div>
+      <AnimatePresence>
+        {notification && <Notification message={notification} onClose={() => setNotification('')} />}
+      </AnimatePresence>
     </div>
   );
 };
