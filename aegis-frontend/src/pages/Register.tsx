@@ -3,6 +3,7 @@ import api from '../utils/api';
 import { useNavigate, Link } from 'react-router-dom';
 import { AuthContext } from '../contexts/AuthContext';
 import { motion } from 'framer-motion';
+import {QRCodeSVG} from 'qrcode.react';
 
 const Register: React.FC = () => {
   const navigate = useNavigate();
@@ -18,6 +19,8 @@ const Register: React.FC = () => {
   });
 
   const [error, setError] = useState<string>('');
+  const [qrUrl, setQrUrl] = useState<string>('');
+  const [registered, setRegistered] = useState<boolean>(false);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -46,25 +49,62 @@ const Register: React.FC = () => {
         password: form.password,
       });
 
-      // Save token and derive encryption key
-      login(response.data.token, form.masterPassword, response.data.salt);
-
-      navigate('/dashboard');
+      // If a twofa enrollment URL is returned, display the QR code; otherwise auto-login:
+      if (response.data.twofaSecret) {
+        setQrUrl(response.data.twofaSecret);
+        setRegistered(true);
+      } else {
+        login(response.data.token, form.masterPassword, response.data.salt);
+        navigate('/dashboard');
+      }
     } catch (err: any) {
       setError(err.response?.data?.message || 'Registration failed.');
     }
   };
 
+  if (registered && qrUrl) {
+    return (
+      <div 
+        className="flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: 'url(/src/assets/background1.jpg)' }}
+      >
+        <motion.div
+          className="max-w-md w-full bg-white/20 backdrop-blur-md p-8 shadow-lg rounded"
+          initial={{ opacity: 0.5, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+        >
+          <h2 className="mb-6 text-center text-3xl font-extrabold text-white">
+            Registration Successful!
+          </h2>
+          <p className="mb-4 text-gray-100">
+            Please scan the QR code below with your authenticator app to enroll for two‑factor authentication.
+          </p>
+          <div className="flex justify-center mb-4">
+            <QRCodeSVG value={qrUrl} size={200} bgColor="#ffffff" fgColor="#000000" />
+          </div>
+          <button 
+            onClick={() => navigate('/login')}
+            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-white bg-gradient-to-r from-blue-500 to-red-500 hover:bg-gradient-to-l focus:outline-none"
+          >
+            Proceed to Login
+          </button>
+        </motion.div>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-cover bg-center bg-no-repeat"
-    style={{ backgroundImage: 'url(/src/assets/background1.jpg)' }}
+    <div 
+      className="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-cover bg-center bg-no-repeat"
+      style={{ backgroundImage: 'url(/src/assets/background1.jpg)' }}
     >
       <motion.div
-              className="max-w-md w-full bg-white/20 backdrop-blur-md p-8 shadow-lg rounded"
-              initial={{ opacity: 0.5, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4 }}
-            >
+        className="max-w-md w-full bg-white/20 backdrop-blur-md p-8 shadow-lg rounded"
+        initial={{ opacity: 0.5, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+      >
         <h2 className="mb-6 text-center text-3xl font-extrabold text-white">
           Register
         </h2>

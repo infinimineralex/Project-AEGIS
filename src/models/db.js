@@ -27,6 +27,7 @@ db.serialize(() => {
             email TEXT UNIQUE NOT NULL,
             password TEXT NOT NULL,
             encryption_salt TEXT NOT NULL,
+            twofa_secret TEXT,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )
     `);

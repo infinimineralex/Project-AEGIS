@@ -2,6 +2,7 @@ const db = require('../models/db');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
+const speakeasy = require('speakeasy');
 
 /*
 Registration:
@@ -37,9 +38,12 @@ exports.register = (req, res) => {
                 return res.status(500).json({ message: 'Error hashing password.', error: hashErr.message });
             }
 
-            // Insert new user including the encryptionSalt
-            const insertUserQuery = `INSERT INTO users (username, email, password, encryption_salt) VALUES (?, ?, ?, ?)`;
-            db.run(insertUserQuery, [username, email, hashedPassword, encryptionSalt], function(insertErr) {
+            // Generate TOTP secret for 2FA enrollment
+            const twofaSecret = speakeasy.generateSecret({ length: 20 });
+
+            // Insert new user including the encryptionSalt and twofaSecret
+            const insertUserQuery = `INSERT INTO users (username, email, password, encryption_salt, twofa_secret) VALUES (?, ?, ?, ?, ?)`;
+            db.run(insertUserQuery, [username, email, hashedPassword, encryptionSalt, twofaSecret.base32], function(insertErr) {
                 if (insertErr) {
                     return res.status(500).json({ message: 'Error creating user.', error: insertErr.message });
                 }
@@ -51,11 +55,12 @@ exports.register = (req, res) => {
                     { expiresIn: '2h' }
                 );
 
-                // Return token and salt to the client
+                // Optionally, you can send back the twofa enrollment URL or secret for the client to set up their authenticator app.
                 return res.status(201).json({ 
                     message: 'User registered successfully.',
                     token,
-                    salt: encryptionSalt
+                    salt: encryptionSalt,
+                    twofaSecret: twofaSecret.otpauth_url
                 });
             });
         });
@@ -93,7 +98,17 @@ exports.login = (req, res) => {
                 return res.status(400).json({ message: 'Invalid username or password.' });
             }
 
-            // Generate JWT (expires in 2 hours)
+            // If twofa_secret is set, require 2FA verification first.
+            if (user.twofa_secret) {
+                return res.status(200).json({ 
+                    message: '2FA required.',
+                    twofaRequired: true,
+                    tempUserId: user.id,
+                    salt: user.encryption_salt
+                });
+            }
+
+            // If no 2FA, generate the token directly.
             const token = jwt.sign(
                 { id: user.id, username: user.username },
                 process.env.JWT_SECRET,
@@ -106,6 +121,34 @@ exports.login = (req, res) => {
                 token,
                 salt: user.encryption_salt
             });
+        });
+    });
+};
+
+exports.verify2FA = (req, res) => {
+    const { userId, token: userToken } = req.body;
+    const getUserQuery = `SELECT * FROM users WHERE id = ?`;
+    db.get(getUserQuery, [userId], (err, user) => {
+        if (err || !user) {
+            return res.status(400).json({ message: 'User not found.' });
+        }
+        const verified = speakeasy.totp.verify({
+            secret: user.twofa_secret,
+            encoding: 'base32',
+            token: userToken,
+        });
+        if (!verified) {
+            return res.status(400).json({ message: 'Invalid 2FA token.' });
+        }
+        const jwtToken = jwt.sign(
+            { id: user.id, username: user.username },
+            process.env.JWT_SECRET,
+            { expiresIn: '2h' }
+        );
+        return res.status(200).json({ 
+            message: 'Logged in successfully.',
+            token: jwtToken,
+            salt: user.encryption_salt
         });
     });
 };
