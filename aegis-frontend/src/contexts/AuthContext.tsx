@@ -83,10 +83,10 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
 
     // Parse the salt from hex string into a WordArray
     const saltWA = CryptoJS.enc.Hex.parse(salt);
-    // Derive encryption key using PBKDF2 with 1000 iterations (keySize: 256 bits)
+    // Derive encryption key using PBKDF2 with 1000 iterations (keySize: 256 bits) though I may wanna swap to argon2 later 
     const key = CryptoJS.PBKDF2(masterPassword, saltWA, {
       keySize: 256 / 32,
-      iterations: 1000,
+      iterations: 1000,  
     }).toString();
 
     setDecryptedKey(key);
