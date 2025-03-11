@@ -47,7 +47,7 @@ const Register: React.FC = () => {
       });
 
       // Save token and derive encryption key
-      login(response.data.token, form.masterPassword);
+      login(response.data.token, form.masterPassword, response.data.salt);
 
       navigate('/dashboard');
     } catch (err: any) {

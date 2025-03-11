@@ -1,4 +1,3 @@
-// CURRENTLY UNUSED
 import React, { useState, useContext } from 'react';
 import { AuthContext } from '../contexts/AuthContext';
 import { motion } from 'framer-motion';
@@ -21,9 +20,17 @@ const MasterPasswordModal: React.FC<Props> = () => {
       return;
     }
 
-    // Since the master password isn't stored on the backend, I just derive the key and proceed.
+    // Retrieve the stored salt from localStorage
+    const salt = localStorage.getItem('encryptionSalt');
+    if (!salt) {
+      setError('Encryption salt not found.');
+      return;
+    }
 
-    login('', masterPassword); // Passing token as '' since login is already done
+    // Since the master password isn't stored on the backend,
+    // we derive the key using the stored salt and then proceed.
+    login('', masterPassword, salt);
+
     navigate('/dashboard');
   };
 

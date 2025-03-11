@@ -14,7 +14,7 @@ interface AuthContextType {
   user: User | null;
   token: string | null;
   decryptedKey: string | null;
-  login: (token: string, masterPassword: string) => void;
+  login: (token: string, masterPassword: string, salt: string) => void;
   logout: () => void;
 }
 // Specifies the context's structure, including user info, token, and functions to login and logout.
@@ -76,12 +76,19 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
   }, [token]);
 
   // Login function
-  const login = (token: string, masterPassword: string) => {
+  const login = (token: string, masterPassword: string, salt: string) => {
     localStorage.setItem('token', token);
+    localStorage.setItem('encryptionSalt', salt);
     setToken(token);
 
-    // Derive encryption key from master password using SHA-256
-    const key = CryptoJS.SHA256(masterPassword).toString();
+    // Parse the salt from hex string into a WordArray
+    const saltWA = CryptoJS.enc.Hex.parse(salt);
+    // Derive encryption key using PBKDF2 with 1000 iterations (keySize: 256 bits)
+    const key = CryptoJS.PBKDF2(masterPassword, saltWA, {
+      keySize: 256 / 32,
+      iterations: 1000,
+    }).toString();
+
     setDecryptedKey(key);
   };
 

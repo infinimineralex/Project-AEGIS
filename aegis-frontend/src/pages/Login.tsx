@@ -44,7 +44,7 @@ const Login: React.FC = () => {
       });
 
       // Save token and derive encryption key
-      login(response.data.token, masterPassword);
+      login(response.data.token, masterPassword, response.data.salt);
 
       navigate('/dashboard');
     } catch (err: any) {

@@ -19,17 +19,18 @@ const db = new sqlite3.Database(dbPath, (err) => {
 
 // Initializes database tables
 db.serialize(() => {
-    // Users table
+    // Users table with encryption_salt
     db.run(`
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             username TEXT UNIQUE NOT NULL,
             email TEXT UNIQUE NOT NULL,
             password TEXT NOT NULL,
+            encryption_salt TEXT NOT NULL,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )
     `);
-
+    
     // Passwords table
     db.run(`
         CREATE TABLE IF NOT EXISTS passwords (
