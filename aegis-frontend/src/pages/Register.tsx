@@ -3,7 +3,7 @@ import api from '../utils/api';
 import { useNavigate, Link } from 'react-router-dom';
 import { AuthContext } from '../contexts/AuthContext';
 import { motion } from 'framer-motion';
-import {QRCodeSVG} from 'qrcode.react';
+import { QRCodeSVG } from 'qrcode.react';
 
 const Register: React.FC = () => {
   const navigate = useNavigate();
@@ -65,7 +65,7 @@ const Register: React.FC = () => {
   if (registered && qrUrl) {
     return (
       <div 
-        className="flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-cover bg-center bg-no-repeat"
+        className="min-h-screen w-full flex flex-col items-center justify-center bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: 'url(/src/assets/background1.jpg)' }}
       >
         <motion.div
@@ -78,10 +78,14 @@ const Register: React.FC = () => {
             Registration Successful!
           </h2>
           <p className="mb-4 text-gray-100">
-            Please scan the QR code below with your authenticator app to enroll for two‑factor authentication.
+            DO NOT SKIP THIS STEP. Please scan the QR code below with your authenticator app to enroll for two‑factor authentication.
           </p>
           <div className="flex justify-center mb-4">
-            <QRCodeSVG value={qrUrl} size={200} bgColor="#ffffff" fgColor="#000000" />
+            <div className="p-2 bg-gradient-to-r from-blue-500 to-red-500 rounded shadow-lg">
+              <div className="p-5 rounded bg-white">
+                <QRCodeSVG value={qrUrl} size={200} bgColor="#ffffff" fgColor="#000000" />
+              </div>
+            </div>
           </div>
           <button 
             onClick={() => navigate('/login')}
@@ -96,7 +100,7 @@ const Register: React.FC = () => {
 
   return (
     <div 
-      className="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-cover bg-center bg-no-repeat"
+      className="min-h-screen w-full flex items-center justify-center bg-cover bg-center bg-no-repeat"
       style={{ backgroundImage: 'url(/src/assets/background1.jpg)' }}
     >
       <motion.div
