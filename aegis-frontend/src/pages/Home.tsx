@@ -111,7 +111,7 @@ const Home: React.FC = () => {
               <FaLock className="mx-auto h-16 w-16 mb-4 text-white-500" />
               <h3 className="text-xl font-semibold mb-2 text-white">Privacy First</h3>
               <p className="text-gray-300">
-                We respect your privacy. Your master password and data are never stored or tracked, ensuring complete confidentiality.
+                We respect your privacy. Your salted master password and data are never stored or tracked, ensuring complete confidentiality.
               </p>
             </motion.div>
 
@@ -162,7 +162,7 @@ const Home: React.FC = () => {
               transition={{ duration: 0.8, delay: 0.2 }}
             >
               <p className="text-lg text-gray-100 mb-4">
-                Aegis uses robust encryption standards to secure your passwords. Each password is encrypted using your unique master key directly on your device, ensuring that only you can access your sensitive information.
+                Aegis uses robust encryption standards to secure your passwords. Each password is encrypted using your unique salted master key directly on your device, ensuring that only you can access your sensitive information.
               </p>
               <p className="text-lg text-gray-100">
                 With planned seamless synchronization across devices, your credentials will be accessible wherever you go, without compromising security.
