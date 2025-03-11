@@ -69,7 +69,7 @@ const Register: React.FC = () => {
           Register
         </h2>
 
-        {error && <div className="mb-4 text-red-500">{error}</div>}
+        {error && <div className="mb-4 text-gray-100">{error}</div>}
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Username Field */}

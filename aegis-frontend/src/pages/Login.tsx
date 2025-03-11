@@ -68,7 +68,7 @@ const Login: React.FC = () => {
           Login
         </h2>
 
-        {error && <div className="mb-4 text-red-500">{error}</div>}
+        {error && <div className="mb-4 text-red-100">{error}</div>}
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Username Field */}
