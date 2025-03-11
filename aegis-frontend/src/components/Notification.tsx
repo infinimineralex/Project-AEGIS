@@ -20,9 +20,15 @@ const Notification: React.FC<NotificationProps> = ({ message, onClose }) => {
       animate={{ x: 0, opacity: 1 }}
       exit={{ x: 300, opacity: 0 }}
       transition={{ duration: 0.5 }}
-      className="fixed bottom-4 right-4 bg-white/20 backdrop-blur-md text-white px-4 py-2 rounded shadow-md"
+      className="fixed bottom-4 right-4 bg-white/20 backdrop-blur-md text-white px-4 py-2 rounded shadow-md overflow-hidden"
     >
-      {message}
+      <div>{message}</div>
+      <motion.div
+        initial={{ width: '100%' }}
+        animate={{ width: '0%' }}
+        transition={{ duration: 3, ease: 'linear' }}
+        className="bg-blue-400 h-1 mt-2"
+      />
     </motion.div>
   );
 };
