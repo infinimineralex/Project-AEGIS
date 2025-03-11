@@ -21,19 +21,8 @@ const MasterPasswordModal: React.FC<Props> = () => {
       return;
     }
 
-    // Here, I would typically verify the master password.
-    // Since the master password isn't stored on the backend,
-    // I just derive the key and proceed.
+    // Since the master password isn't stored on the backend, I just derive the key and proceed.
 
-    // For enhanced security, I might prompt for master password again
-    // when performing sensitive operations.
-
-    // Derive encryption key
-    // Assuming 'login' has already set the token,
-    // and this modal is part of the login process
-    // (Adjust based on context and flow)
-
-    // We'll navigate to dashboard after setting the key
     login('', masterPassword); // Passing token as '' since login is already done
     navigate('/dashboard');
   };
