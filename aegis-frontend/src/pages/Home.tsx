@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FaShieldAlt, FaLock, FaTachometerAlt } from 'react-icons/fa';
 import MouseMoveEffect from '../components/MouseMoveEffect';
+import TypingText from '../components/TypingText';
 
 const Home: React.FC = () => {
   return (
@@ -25,9 +26,19 @@ const Home: React.FC = () => {
         <section className="container flex min-h-[calc(100vh-9.5rem)] max-w-screen-xl flex-col items-center justify-center space-y-8 py-24 text-center md:py-32">
       <div className="space-y-4">
         <h1 className="bg-gradient-to-br from-foreground from-30% via-foreground/90 to-foreground/70 bg-clip-text text-8xl font-bold tracking-tight sm:text-8xl md:text-8xl lg:text-8xl">
-          THE FUTURE OF PASSWORD MANAGEMENT
-          <br />
-          
+          THE FUTURE OF{' '}
+          <TypingText
+            words={[
+              "PASSWORD MANAGEMENT",
+              "SECURITY",
+              "PEACE-OF-MIND",
+              "TRUST",
+              "AUTHENTICATION"
+            ]}
+            typingSpeed={150}
+            deletingSpeed={100}
+            delayBetweenWords={1000}
+          />
         </h1>
         <p className="mx-auto max-w-[42rem] leading-normal text-muted-foreground sm:text-xl sm:leading-8">
         Aegis is your trusted password manager, offering top-tier security, seamless usability, and powerful features to keep your digital life safe and organized.
