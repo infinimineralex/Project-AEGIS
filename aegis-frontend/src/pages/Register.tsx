@@ -110,7 +110,7 @@ const Register: React.FC = () => {
         transition={{ duration: 0.4 }}
       >
         <h2 className="mb-6 text-center text-3xl font-extrabold text-white">
-          Register
+          Create an Account
         </h2>
 
         {error && <div className="mb-4 text-gray-100">{error}</div>}
