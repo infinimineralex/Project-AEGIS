@@ -5,6 +5,8 @@ import { AuthContext } from '../contexts/AuthContext';
 import { motion } from 'framer-motion';
 import { QRCodeSVG } from 'qrcode.react';
 
+const MIN_PASSWORD_LENGTH = 4;
+
 const Register: React.FC = () => {
   const navigate = useNavigate();
   const { login } = useContext(AuthContext);
@@ -39,6 +41,17 @@ const Register: React.FC = () => {
 
     if (form.masterPassword !== form.confirmMasterPassword) {
       setError('Master passwords do not match.');
+      return;
+    }
+    
+    // Length validations
+    if (form.password.length < MIN_PASSWORD_LENGTH) {
+      setError(`Password must be at least ${MIN_PASSWORD_LENGTH} characters long.`);
+      return;
+    }
+
+    if (form.masterPassword.length < MIN_PASSWORD_LENGTH) {
+      setError(`Master password must be at least ${MIN_PASSWORD_LENGTH} characters long.`);
       return;
     }
 
