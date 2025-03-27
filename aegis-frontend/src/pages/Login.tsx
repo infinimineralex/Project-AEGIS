@@ -75,7 +75,7 @@ const Login: React.FC = () => {
   return (
     <div 
       className="min-h-[calc(100vh-75px)] flex items-center justify-center bg-cover bg-center bg-no-repeat"
-      style={{ backgroundImage: 'url(/src/assets/background1.jpg)' }}
+      style={{ backgroundImage: 'url(/public/background1.jpg)' }}
     >
       
       <motion.div
