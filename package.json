@@ -6,10 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node src/server.js",
-    "dev": "nodemon src/server.js",
-    "build:backend": "echo \"No build needed for backend\"",
-    "build:frontend": "cd aegis-frontend && npm run build",
-    "build": "npm run build:backend && npm run build:frontend"
+    "dev": "nodemon src/server.js"
   },
   "repository": {
     "type": "git",

@@ -1,7 +1,7 @@
 import React, { createContext, useState, useEffect, ReactNode } from 'react';
 import CryptoJS from 'crypto-js';
 import { useNavigate } from 'react-router-dom';
-import api from '../utils/api'; // Imports the Axios instance to make API requests (TODO for use later)
+//import api from '../utils/api'; // Imports the Axios instance to make API requests (TODO for use later)
 
 interface User {
   id: number;
