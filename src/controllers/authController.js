@@ -35,6 +35,7 @@ exports.register = (req, res) => {
         // Hash password
         bcrypt.hash(password, 10, (hashErr, hashedPassword) => {
             if (hashErr) { 
+                console.error('Hashing error:', hashErr);
                 return res.status(500).json({ message: 'Error hashing password.', error: hashErr.message });
             }
 
@@ -45,6 +46,7 @@ exports.register = (req, res) => {
             const insertUserQuery = `INSERT INTO users (username, email, password, encryption_salt, twofa_secret) VALUES (?, ?, ?, ?, ?)`;
             db.run(insertUserQuery, [username, email, hashedPassword, encryptionSalt, twofaSecret.base32], function(insertErr) {
                 if (insertErr) {
+                    console.error('DB Insert error:', insertErr);
                     return res.status(500).json({ message: 'Error creating user.', error: insertErr.message });
                 }
 
@@ -55,7 +57,7 @@ exports.register = (req, res) => {
                     { expiresIn: '2h' }
                 );
 
-                // Optionally, you can send back the twofa enrollment URL or secret for the client to set up their authenticator app.
+                // Should send back the twofa enrollment URL or secret for the client to set up their authenticator app.
                 return res.status(201).json({ 
                     message: 'User registered successfully.',
                     token,
