@@ -217,7 +217,7 @@ const Dashboard: React.FC = () => {
   return (
     <div
       className="min-h-screen bg-cover bg-center bg-no-repeat p-4"
-      style={{ backgroundImage: 'url(aegis-frontend/public/background1.jpg)' }}
+      style={{ backgroundImage: 'url(/background1.jpg)' }}
     >
       <div className="container mx-auto">
         <div className="flex justify-between items-center mb-6">
