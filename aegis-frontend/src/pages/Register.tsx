@@ -1,5 +1,5 @@
 import React, { useState, useContext } from 'react';
-import api from '../utils/api';
+import { invoke } from '@tauri-apps/api/tauri';
 import { useNavigate, Link } from 'react-router-dom';
 import { AuthContext } from '../contexts/AuthContext';
 import { motion } from 'framer-motion';
@@ -56,22 +56,22 @@ const Register: React.FC = () => {
     }
 
     try {
-      const response = await api.post('/api/auth/register', {
+      const response: any = await invoke('register_user', {
         username: form.username,
         email: form.email,
         password: form.password,
       });
 
-      // If a twofa enrollment URL is returned, display the QR code; otherwise auto-login:
-      if (response.data.twofaSecret) {
-        setQrUrl(response.data.twofaSecret);
+      // If TOTP enrollment info is returned from Rust
+      if (response.twofaSecret) {
+        setQrUrl(response.twofaSecret);
         setRegistered(true);
       } else {
-        login(response.data.token, form.masterPassword, response.data.salt);
+        login(response.token, form.masterPassword, response.salt);
         navigate('/dashboard');
       }
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Registration failed.');
+      setError(err.message || 'Registration failed.');
     }
   };
 

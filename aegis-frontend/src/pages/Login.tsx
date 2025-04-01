@@ -1,5 +1,5 @@
 import React, { useState, useContext } from 'react';
-import api from '../utils/api';
+import { invoke } from '@tauri-apps/api/tauri';
 import { useNavigate, Link } from 'react-router-dom';
 import { AuthContext } from '../contexts/AuthContext';
 import { motion } from 'framer-motion';
@@ -41,34 +41,34 @@ const Login: React.FC = () => {
     }
 
     try {
-      const response = await api.post('/api/auth/login', {
+      const response: any = await invoke('login', {
         username: form.username,
         password: form.password,
       });
 
-      if (response.data.twofaRequired) {
+      if (response.twofa_required) {
         setTwofaRequired(true);
-        setTempUserId(response.data.tempUserId);
+        setTempUserId(response.temp_user_id);
       } else {
-        login(response.data.token, masterPassword, response.data.salt);
+        login(response.token, masterPassword, response.salt);
         navigate('/dashboard');
       }
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Login failed.');
+      setError(err.message || 'Login failed.');
     }
   };
 
   const handle2faSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const verifyResponse = await api.post('/api/auth/verify-2fa', {
+      const verifyResponse: any = await invoke('verify_2fa', {
         userId: tempUserId,
         token: twofaToken,
       });
-      login(verifyResponse.data.token, masterPassword, verifyResponse.data.salt);
+      login(verifyResponse.token, masterPassword, verifyResponse.salt);
       navigate('/dashboard');
     } catch (err: any) {
-      setError(err.response?.data?.message || '2FA verification failed.');
+      setError(err.message || '2FA verification failed.');
     }
   };
 
@@ -77,7 +77,6 @@ const Login: React.FC = () => {
       className="min-h-[calc(100vh-75px)] flex items-center justify-center bg-cover bg-center bg-no-repeat"
       style={{ backgroundImage: 'url(/public/background1.jpg)' }}
     >
-      
       <motion.div
         className="max-w-md w-full bg-white/20 backdrop-blur-md p-8 shadow-lg rounded"
         initial={{ opacity: 0.5, y: 10 }}
@@ -90,15 +89,10 @@ const Login: React.FC = () => {
 
         {error && <div className="mb-4 text-red-100">{error}</div>}
 
-        {/* If 2FA is not yet required, show the standard login form */}
         {!twofaRequired ? (
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Username Field */}
             <div>
-              <label
-                htmlFor="username"
-                className="block text-sm font-medium text-gray-100"
-              >
+              <label htmlFor="username" className="block text-sm font-medium text-gray-100">
                 Username
               </label>
               <input
@@ -112,12 +106,8 @@ const Login: React.FC = () => {
               />
             </div>
 
-            {/* Password Field */}
             <div>
-              <label
-                htmlFor="password"
-                className="block text-sm font-medium text-gray-100"
-              >
+              <label htmlFor="password" className="block text-sm font-medium text-gray-100">
                 Password
               </label>
               <input
@@ -131,12 +121,8 @@ const Login: React.FC = () => {
               />
             </div>
 
-            {/* Master Password Field */}
             <div>
-              <label
-                htmlFor="masterPassword"
-                className="block text-sm font-medium text-gray-100"
-              >
+              <label htmlFor="masterPassword" className="block text-sm font-medium text-gray-100">
                 Master Password
               </label>
               <input
@@ -151,7 +137,6 @@ const Login: React.FC = () => {
               />
             </div>
 
-            {/* Submit Button */}
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <button
                 type="submit"
@@ -162,13 +147,9 @@ const Login: React.FC = () => {
             </motion.div>
           </form>
         ) : (
-          // If 2FA is required, display the token input form.
           <form onSubmit={handle2faSubmit} className="space-y-6">
             <div>
-              <label
-                htmlFor="twofaToken"
-                className="block text-sm font-medium text-gray-100"
-              >
+              <label htmlFor="twofaToken" className="block text-sm font-medium text-gray-100">
                 Enter 2FA Token
               </label>
               <input
@@ -192,13 +173,9 @@ const Login: React.FC = () => {
           </form>
         )}
 
-        {/* Link to Register */}
         <div className="mt-4 text-center text-gray-100">
           Don't have an account?{' '}
-          <Link
-            to="/register"
-            className="text-blue-400 hover:text-blue-300"
-          >
+          <Link to="/register" className="text-blue-400 hover:text-blue-300">
             Register
           </Link>
         </div>

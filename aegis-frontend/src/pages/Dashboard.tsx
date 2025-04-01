@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useContext } from 'react';
-import api from '../utils/api';
+import { invoke } from '@tauri-apps/api/tauri';
 import { AuthContext } from '../contexts/AuthContext';
 import CryptoJS from 'crypto-js';
 import { useNavigate } from 'react-router-dom';
@@ -44,37 +44,19 @@ const Dashboard: React.FC = () => {
   // New state for notification
   const [notification, setNotification] = useState<string>('');
 
-  // Fetch credentials from backend
+  // Fetch credentials using Tauri's invoke instead of axios
   const fetchCredentials = async () => {
-    if (!token) {
-      setError('Authentication token missing.');
-      return;
-    }
-
     try {
-      const response = await api.get('/api/passwords', {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+      const response: any = await invoke('get_credentials', {
+        token, // pass additional info as needed
       });
 
-      // Decrypt passwords
-      const decryptedCredentials: Credential[] = response.data.credentials.map(
-        (cred: any) => {
-          const bytes = CryptoJS.AES.decrypt(cred.password, decryptedKey!);
-          const decryptedPassword = bytes.toString(CryptoJS.enc.Utf8);
-
-          return {
-            id: cred.id,
-            website: cred.website,
-            username: cred.username,
-            password: decryptedPassword,
-            notes: cred.notes,
-            created_at: cred.created_at,
-            updated_at: cred.updated_at,
-          };
-        }
-      );
+      // Decrypt passwords if still encrypted
+      const decryptedCredentials: Credential[] = response.credentials.map((cred: any) => {
+        const bytes = CryptoJS.AES.decrypt(cred.password, decryptedKey!);
+        const decryptedPassword = bytes.toString(CryptoJS.enc.Utf8);
+        return { ...cred, password: decryptedPassword };
+      });
 
       setCredentials(decryptedCredentials);
     } catch (err: any) {
@@ -113,39 +95,26 @@ const Dashboard: React.FC = () => {
 
       if (editing && currentId !== null) {
         // Update existing credential
-        await api.put(
-          `/api/passwords/${currentId}`,
-          {
-            website: form.website,
-            username: form.username,
-            password: encryptedPassword,
-            notes: form.notes,
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+        await invoke('update_credential', {
+          id: currentId,
+          website: form.website,
+          username: form.username,
+          password: encryptedPassword,
+          notes: form.notes,
+          token, // if needed for security
+        });
         setEditing(false);
         setCurrentId(null);
         setNotification('Credential updated successfully.');
       } else {
         // Create new credential
-        await api.post(
-          '/api/passwords',
-          {
-            website: form.website,
-            username: form.username,
-            password: encryptedPassword,
-            notes: form.notes,
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+        await invoke('create_credential', {
+          website: form.website,
+          username: form.username,
+          password: encryptedPassword,
+          notes: form.notes,
+          token,
+        });
         setNotification('Credential added successfully.');
       }
 
@@ -181,12 +150,7 @@ const Dashboard: React.FC = () => {
   const handleDelete = async (id: number) => {
     if (!window.confirm('Are you sure you want to delete this credential?')) return;
     try {
-      await api.delete(`/api/passwords/${id}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
+      await invoke('delete_credential', { id, token });
       fetchCredentials();
       setNotification('Credential deleted successfully.');
     } catch (err: any) {
