@@ -6,7 +6,8 @@ import { useNavigate } from 'react-router-dom';
 interface User {
   id: number;
   username: string;
-  // Add other user properties if available
+  email: string;
+  is_verified: number;
 }
 
 // Defines the shape of the user data.

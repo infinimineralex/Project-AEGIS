@@ -7,6 +7,7 @@ import Home from './pages/Home';
 import ProtectedRoute from './components/ProtectedRoute';
 import Header from './components/Header';
 import LoadingScreen from './components/LoadingScreen';
+import VerifyEmail from './pages/VerifyEmail';
 
 const App: React.FC = () => {
   const [loading, setLoading] = useState(true);
@@ -50,6 +51,14 @@ const App: React.FC = () => {
           element={
             <ProtectedRoute>
               <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/verifyemail"
+          element={
+            <ProtectedRoute>
+              <VerifyEmail />
             </ProtectedRoute>
           }
         />

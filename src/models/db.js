@@ -19,7 +19,7 @@ const db = new sqlite3.Database(dbPath, (err) => {
 
 // Initializes database tables
 db.serialize(() => {
-    // Users table with encryption_salt
+    // Users table
     db.run(`
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -28,6 +28,7 @@ db.serialize(() => {
             password TEXT NOT NULL,
             encryption_salt TEXT NOT NULL,
             twofa_secret TEXT,
+            is_verified INTEGER DEFAULT 0,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )
     `);
@@ -43,6 +44,19 @@ db.serialize(() => {
             notes TEXT,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+        )
+    `);
+
+    // New table for verification codes (for email verification and delete account)
+    db.run(`
+        CREATE TABLE IF NOT EXISTS verification_codes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            code TEXT NOT NULL,
+            type TEXT NOT NULL,
+            expires_at DATETIME NOT NULL,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
         )
     `);

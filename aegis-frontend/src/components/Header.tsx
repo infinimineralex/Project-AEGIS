@@ -1,10 +1,11 @@
 import React, { useContext } from 'react';
 import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../contexts/AuthContext';
 
 const Header: React.FC = () => {
   const { user, logout } = useContext(AuthContext);
+  const navigate = useNavigate();
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-gray-400 bg-white/20 backdrop-blur-sm">
@@ -34,6 +35,12 @@ const Header: React.FC = () => {
               >
                 Dashboard
               </Link>
+                <button
+                  className="text-white font-medium hover:text-indigo-500 transition-colors"
+                  onClick={() => navigate('/verifyemail')}
+                >
+                  Account
+                </button>
               <button
                 className="text-white hover:text-indigo-500 transition-colors"
                 onClick={logout}

@@ -42,8 +42,9 @@ exports.register = (req, res) => {
             // Generate TOTP secret for 2FA enrollment
             const twofaSecret = speakeasy.generateSecret({ length: 20 });
 
-            // Insert new user including the encryptionSalt and twofaSecret
-            const insertUserQuery = `INSERT INTO users (username, email, password, encryption_salt, twofa_secret) VALUES (?, ?, ?, ?, ?)`;
+            // Insert new user including the encryptionSalt and twofaSecret.
+            // New users are unverified by default, so is_verified is set to 0.
+            const insertUserQuery = `INSERT INTO users (username, email, password, encryption_salt, twofa_secret, is_verified) VALUES (?, ?, ?, ?, ?, 0)`;
             db.run(insertUserQuery, [username, email, hashedPassword, encryptionSalt, twofaSecret.base32], function(insertErr) {
                 if (insertErr) {
                     console.error('DB Insert error:', insertErr);
@@ -52,12 +53,11 @@ exports.register = (req, res) => {
 
                 // Generate JWT (expires in 2 hours)
                 const token = jwt.sign(
-                    { id: this.lastID, username },
+                    { id: this.lastID, username, email, is_verified: 0 },
                     process.env.JWT_SECRET,
                     { expiresIn: '2h' }
                 );
 
-                // Should send back the twofa enrollment URL or secret for the client to set up their authenticator app.
                 return res.status(201).json({ 
                     message: 'User registered successfully.',
                     token,
@@ -110,14 +110,13 @@ exports.login = (req, res) => {
                 });
             }
 
-            // If no 2FA, generate the token directly.
+            // Generate the token including is_verified from user record.
             const token = jwt.sign(
-                { id: user.id, username: user.username },
+                { id: user.id, username: user.username, email: user.email, is_verified: user.is_verified },
                 process.env.JWT_SECRET,
                 { expiresIn: '2h' }
             );
 
-            // Return token along with the stored encryption salt
             return res.status(200).json({ 
                 message: 'Logged in successfully.',
                 token,
@@ -143,7 +142,7 @@ exports.verify2FA = (req, res) => {
             return res.status(400).json({ message: 'Invalid 2FA token.' });
         }
         const jwtToken = jwt.sign(
-            { id: user.id, username: user.username },
+            { id: user.id, username: user.username, email: user.email, is_verified: user.is_verified },
             process.env.JWT_SECRET,
             { expiresIn: '2h' }
         );

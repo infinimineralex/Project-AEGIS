@@ -7,6 +7,7 @@ import PasswordGenerator from '../components/PasswordGenerator';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiEye, FiEyeOff, FiCopy } from 'react-icons/fi';
 import Notification from '../components/Notification';
+import DeleteAccountModal from '../components/DeleteAccountModal';
 
 interface Credential {
   id: number;
@@ -19,7 +20,7 @@ interface Credential {
 }
 
 const Dashboard: React.FC = () => {
-  const { token, decryptedKey, logout } = useContext(AuthContext);
+  const { token, decryptedKey, logout, user } = useContext(AuthContext);
   const navigate = useNavigate();
 
   const [credentials, setCredentials] = useState<Credential[]>([]);
@@ -43,6 +44,9 @@ const Dashboard: React.FC = () => {
 
   // New state for notification
   const [notification, setNotification] = useState<string>('');
+
+  // New state for delete account modal
+  const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
 
   // Fetch credentials from backend
   const fetchCredentials = async () => {
@@ -222,14 +226,32 @@ const Dashboard: React.FC = () => {
       <div className="container mx-auto">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold">Dashboard</h1>
-          <button
-            onClick={handleLogout}
-            className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
-          >
-            Logout
-          </button>
+          <div className="flex gap-2">
+            {user && (
+              <button
+                onClick={() => setShowDeleteModal(true)}
+                className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+              >
+                Delete Account
+              </button>
+            )}
+            <button
+              onClick={handleLogout}
+              className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+            >
+              Logout
+            </button>
+          </div>
         </div>
         {error && <div className="mb-4 text-red-500">{error}</div>}
+        {user && !user.is_verified && (
+          <div className="mb-4 p-4 bg-gradient-to-r from-blue-500 to-red-500 text-white rounded">
+            Please verify your email to add credentials.
+            <button onClick={() => navigate('/verifyemail')} className="underline ml-2">
+              Verify Now
+            </button>
+          </div>
+        )}
 
         {/* Side-by-Side Layout for Form and Credentials */}
         <div className="flex flex-col md:flex-row gap-6">
@@ -431,6 +453,7 @@ const Dashboard: React.FC = () => {
           </motion.div>
         </div>
       </div>
+      {showDeleteModal && <DeleteAccountModal onClose={() => setShowDeleteModal(false)} />}
       <AnimatePresence>
         {notification && <Notification message={notification} onClose={() => setNotification('')} />}
       </AnimatePresence>
