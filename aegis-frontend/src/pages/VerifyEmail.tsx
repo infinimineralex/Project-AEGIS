@@ -5,6 +5,7 @@ import api from '../utils/api';
 import { AuthContext } from '../contexts/AuthContext';
 import DeleteAccountModal from '../components/DeleteAccountModal';
 import PasswordResetModal from '../components/PasswordResetModal';
+import FeedbackPopup from '../components/FeedbackPopup';
 
 const VerifyEmail: React.FC = () => {
   const { user, token } = useContext(AuthContext);
@@ -146,6 +147,7 @@ const VerifyEmail: React.FC = () => {
 
       {showDeleteModal && <DeleteAccountModal onClose={() => setShowDeleteModal(false)} />}
       {showResetModal && <PasswordResetModal onClose={() => setShowResetModal(false)} />}
+      <FeedbackPopup />
     </div>
   );
 };

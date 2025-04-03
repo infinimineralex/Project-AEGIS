@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { FiEye, FiEyeOff, FiCopy } from 'react-icons/fi';
 import Notification from '../components/Notification';
 import DeleteAccountModal from '../components/DeleteAccountModal';
+import FeedbackPopup from '../components/FeedbackPopup';
 
 interface Credential {
   id: number;
@@ -454,6 +455,7 @@ const Dashboard: React.FC = () => {
         </div>
       </div>
       {showDeleteModal && <DeleteAccountModal onClose={() => setShowDeleteModal(false)} />}
+      <FeedbackPopup />
       <AnimatePresence>
         {notification && <Notification message={notification} onClose={() => setNotification('')} />}
       </AnimatePresence>
