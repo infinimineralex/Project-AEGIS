@@ -59,12 +59,17 @@ const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({ onClose }) => {
         {error && <div className="mb-2 text-red-500">{error}</div>}
         {message && <div className="mb-2 text-green-500">{message}</div>}
         {!requestSent ? (
-          <button
-            onClick={handleRequestCode}
-            className="w-full bg-red-500 text-white p-2 rounded mb-4 shadow-lg hover:bg-red-600"
+          <motion.div
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
           >
-            Request Deletion Code
-          </button>
+            <button
+              onClick={handleRequestCode}
+              className="w-full bg-red-500 text-white p-2 rounded mb-4 shadow-lg hover:bg-red-600"
+            >
+              Request Deletion Code
+            </button>
+          </motion.div>
         ) : (
           <form onSubmit={handleConfirmDeletion} className="space-y-4">
             <input
@@ -74,9 +79,14 @@ const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({ onClose }) => {
               placeholder="Enter deletion code"
               className="p-2 w-full bg-gray-600 border border-gray-500 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
             />
-            <button type="submit" className="w-full bg-red-600 text-white p-2 rounded shadow-lg hover:bg-red-700">
-              Confirm Account Deletion
-            </button>
+            <motion.div
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            >
+              <button type="submit" className="w-full bg-red-600 text-white p-2 rounded shadow-lg hover:bg-red-700">
+                Confirm Account Deletion
+              </button>
+            </motion.div>
           </form>
         )}
         <button onClick={onClose} className="mt-4 text-white-500 underline">

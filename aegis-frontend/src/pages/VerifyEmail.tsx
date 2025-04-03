@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import api from '../utils/api';
 import { AuthContext } from '../contexts/AuthContext';
 import DeleteAccountModal from '../components/DeleteAccountModal';
+import PasswordResetModal from '../components/PasswordResetModal';
 
 const VerifyEmail: React.FC = () => {
   const { user, token } = useContext(AuthContext);
@@ -13,6 +14,7 @@ const VerifyEmail: React.FC = () => {
   const [verifyMessage, setVerifyMessage] = useState('');
   const [verifyError, setVerifyError] = useState('');
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showResetModal, setShowResetModal] = useState(false);
 
   const handleVerifyEmail = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -113,34 +115,37 @@ const VerifyEmail: React.FC = () => {
             <h3 className="text-xl font-semibold text-white">Account Management</h3>
             <div className="flex flex-col space-y-2 mt-2">
               <button
+                onClick={() => setShowResetModal(true)}
+                className="w-full bg-gray-500 p-2 rounded text-white hover:bg-gray-600 shadow-lg"
+              >
+                Reset Password
+              </button>
+              <button
                 onClick={() => setShowDeleteModal(true)}
                 className="w-full bg-red-500 p-2 rounded text-white hover:bg-red-600 shadow-lg"
               >
                 Delete Account
               </button>
-              <button
-                className="w-full bg-gray-500 p-2 rounded text-white hover:bg-gray-600 shadow-lg"
-                disabled
-                title="Coming Soon"
-              >
-                Reset Password (Coming Soon)
-              </button>
             </div>
           </div>
 
           {/* Navigation */}
-          <button
-            onClick={() => navigate('/dashboard')}
-            className="w-full bg-white p-2 rounded text-indigo-600 hover:bg-gray-200 shadow-lg"
+          <motion.div
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
           >
-            Back to Dashboard
-          </button>
+            <button
+              onClick={() => navigate('/dashboard')}
+              className="w-full bg-white p-2 rounded text-indigo-600 hover:bg-gray-200 shadow-lg"
+            >
+              Back to Dashboard
+            </button>
+          </motion.div>
         </div>
       </motion.div>
 
-      {showDeleteModal && (
-        <DeleteAccountModal onClose={() => setShowDeleteModal(false)} />
-      )}
+      {showDeleteModal && <DeleteAccountModal onClose={() => setShowDeleteModal(false)} />}
+      {showResetModal && <PasswordResetModal onClose={() => setShowResetModal(false)} />}
     </div>
   );
 };

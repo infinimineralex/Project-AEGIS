@@ -1,6 +1,7 @@
 const db = require('../models/db');
 const nodemailer = require('nodemailer');
 const crypto = require('crypto');
+const bcrypt = require('bcryptjs');
 const { google } = require('googleapis');
 
 const OAuth2 = google.auth.OAuth2;
@@ -27,13 +28,13 @@ async function getTransporter() {
   return nodemailer.createTransport({
     service: 'gmail',
     auth: { // re-enable OAuth2 for security purposes later
-      //type: 'OAuth2',
+      // type: 'OAuth2',
       user: process.env.EMAIL,
       pass: process.env.EMAIL_PASS,
-      //clientId: process.env.CLIENT_ID,
-      //clientSecret: process.env.CLIENT_SECRET,
-      //refreshToken: process.env.REFRESH_TOKEN,
-      //accessToken: accessToken,
+      // clientId: process.env.CLIENT_ID,
+      // clientSecret: process.env.CLIENT_SECRET,
+      // refreshToken: process.env.REFRESH_TOKEN,
+      // accessToken: accessToken,
     },
   });
 }
@@ -134,6 +135,100 @@ exports.confirmAccountDeletion = (req, res) => {
       // Clean up any codes for this user.
       db.run(`DELETE FROM verification_codes WHERE user_id = ?`, [userId]);
       return res.status(200).json({ message: 'Account deleted successfully.' });
+    });
+  });
+};
+
+// New Password Reset Endpoints
+
+// Request a password reset code only if the user's email is verified.
+exports.requestPasswordReset = async (req, res) => {
+  const { userId, email } = req.body;
+  
+  // Check if the user's email is verified.
+  const userQuery = `SELECT is_verified FROM users WHERE id = ?`;
+  db.get(userQuery, [userId], async (err, userRow) => {
+    if (err || !userRow) {
+      return res.status(400).json({ message: 'User not found.' });
+    }
+    if (userRow.is_verified !== 1) {
+      return res.status(400).json({ message: 'Email is not verified. Please verify your email first.' });
+    }
+    
+    const code = crypto.randomBytes(3).toString('hex');
+    const insertQuery = `
+      INSERT INTO verification_codes (user_id, code, type, expires_at)
+      VALUES (?, ?, 'password_reset', datetime('now', '+10 minutes'))
+    `;
+    db.run(insertQuery, [userId, code], async function(err) {
+      if (err) {
+        return res.status(500).json({ message: 'Error generating password reset code.' });
+      }
+      try {
+        const transporter = await getTransporter();
+        transporter.sendMail(
+          {
+            from: process.env.EMAIL,
+            to: email,
+            subject: 'Password Reset Verification Code',
+            text: `Your password reset code is: ${code}`,
+          },
+          (err, info) => {
+            if (err) {
+              return res.status(500).json({ message: 'Error sending password reset email.' });
+            }
+            return res.status(200).json({ message: 'Password reset email sent.' });
+          }
+        );
+      } catch (error) {
+        return res.status(500).json({ message: 'Failed to create transporter.', error: error.message });
+      }
+    });
+  });
+};
+
+// Confirm the password reset, ensuring the email is verified and hashing the new password.
+exports.confirmPasswordReset = (req, res) => {
+  const { userId, code, newPassword } = req.body;
+  
+  if (!newPassword) {
+    return res.status(400).json({ message: 'New password must be provided.' });
+  }
+  
+  // First, check if the user's email is verified.
+  const userQuery = `SELECT is_verified FROM users WHERE id = ?`;
+  db.get(userQuery, [userId], (err, userRow) => {
+    if (err || !userRow) {
+      return res.status(400).json({ message: 'User not found.' });
+    }
+    if (userRow.is_verified !== 1) {
+      return res.status(400).json({ message: 'Email is not verified. Cannot reset password.' });
+    }
+    
+    // Now, verify the reset code.
+    const selectQuery = `
+      SELECT * FROM verification_codes 
+      WHERE user_id = ? AND code = ? AND type = 'password_reset' AND expires_at > datetime('now')
+    `;
+    db.get(selectQuery, [userId, code], (err, row) => {
+      if (err || !row) {
+        return res.status(400).json({ message: 'Invalid or expired password reset code.' });
+      }
+      // Hash the new password using bcrypt.
+      bcrypt.hash(newPassword, 10, (err, hashedPassword) => {
+         if (err) {
+           return res.status(500).json({ message: 'Error hashing password.' });
+         }
+         const updateQuery = `UPDATE users SET password = ? WHERE id = ?`;
+         db.run(updateQuery, [hashedPassword, userId], function(err) {
+            if (err) {
+              return res.status(500).json({ message: 'Error updating password.' });
+            }
+            // Clean up the used code.
+            db.run(`DELETE FROM verification_codes WHERE id = ?`, [row.id]);
+            return res.status(200).json({ message: 'Password updated successfully.' });
+         });
+      });
     });
   });
 };
