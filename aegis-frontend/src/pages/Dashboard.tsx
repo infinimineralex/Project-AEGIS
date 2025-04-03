@@ -338,7 +338,7 @@ const Dashboard: React.FC = () => {
                 <label htmlFor="password" className="block text-sm font-medium text-gray-300">
                   Password
                 </label>
-                <div className="flex items-center space-x-2 relative z-50">
+                <div className="relative z-50">
                   <input
                     type={showFormPassword ? 'text' : 'password'}
                     name="password"
@@ -346,24 +346,30 @@ const Dashboard: React.FC = () => {
                     required
                     value={form.password}
                     onChange={handleChange}
-                    className="mt-1 flex-1 block w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                    className="mt-1 block w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
                   />
-                  <PasswordStrengthIndicator password={form.password} />
-                  <motion.button
-                    type="button"
-                    onClick={() => setShowFormPassword((prev) => !prev)}
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                    className="flex items-center justify-center w-12 h-12 bg-indigo-600 text-white rounded-md shadow-md hover:bg-indigo-700 focus:outline-none"
-                    title={showFormPassword ? 'Hide Password' : 'Show Password'}
-                  >
-                    {showFormPassword ? <FiEyeOff size={20} /> : <FiEye size={20} />}
-                  </motion.button>
-                  <PasswordGenerator
-                    setPassword={(pwd: string) =>
-                      setForm((prev) => ({ ...prev, password: pwd }))
-                    }
-                  />
+                </div>
+                <div className="mt-2 relative z-50 flex items-center">
+                  <div className="flex-grow mr-2">
+                    <PasswordStrengthIndicator password={form.password} />
+                  </div>
+                  <div className="flex space-x-2">
+                    <motion.button
+                      type="button"
+                      onClick={() => setShowFormPassword((prev) => !prev)}
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                      className="flex items-center justify-center w-12 h-12 bg-indigo-600 text-white rounded-md shadow-md hover:bg-indigo-700 focus:outline-none"
+                      title={showFormPassword ? 'Hide Password' : 'Show Password'}
+                    >
+                      {showFormPassword ? <FiEyeOff size={20} /> : <FiEye size={20} />}
+                    </motion.button>
+                    <PasswordGenerator
+                      setPassword={(pwd: string) =>
+                        setForm((prev) => ({ ...prev, password: pwd }))
+                      }
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -377,6 +383,7 @@ const Dashboard: React.FC = () => {
                   id="notes"
                   value={form.notes}
                   onChange={handleChange}
+                  style={{ minHeight: '70px' }}
                   className="mt-1 block w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
                   rows={3}
                 ></textarea>

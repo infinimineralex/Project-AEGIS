@@ -79,12 +79,16 @@ const VerifyEmail: React.FC = () => {
               <>
                 <p className="text-yellow-300">Your email is not verified.</p>
                 <div className="flex flex-col gap-2 mt-2">
-                  <button
-                    onClick={handleSendVerificationCode}
-                    className="w-full bg-blue-500 p-2 rounded text-white hover:bg-blue-600 shadow-lg"
+                  <motion.div
+                    whileTap={{ scale: 0.95 }}
                   >
-                    Send Verification Code
-                  </button>
+                    <button
+                      onClick={handleSendVerificationCode}
+                      className="w-full bg-blue-500 p-2 rounded text-white hover:bg-blue-600 shadow-lg"
+                    >
+                      Send Verification Code
+                    </button>
+                  </motion.div>
                   <form onSubmit={handleVerifyEmail} className="space-y-2">
                     <input
                       type="text"
@@ -93,19 +97,23 @@ const VerifyEmail: React.FC = () => {
                       placeholder="Enter verification code"
                       className="w-full p-2 rounded bg-gray-600 border border-gray-500 shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
                     />
-                    <button
-                      type="submit"
-                      className="w-full bg-gradient-to-r from-blue-500 to-red-500 p-2 rounded text-white hover:bg-gradient-to-l shadow-lg"
+                    <motion.div
+                      whileTap={{ scale: 0.95 }}
                     >
+                      <button
+                        type="submit"
+                        className="w-full bg-gradient-to-r from-blue-500 to-red-500 p-2 rounded text-white hover:bg-gradient-to-l shadow-lg"
+                      >
                       Verify Email
-                    </button>
+                      </button>
+                    </motion.div>
                   </form>
                 </div>
                 {verifyMessage && (
                   <p className="text-green-300 mt-2">{verifyMessage}</p>
                 )}
                 {verifyError && (
-                  <p className="text-red-300 mt-2">{verifyError}</p>
+                  <p className="text-white mt-2">{verifyError}</p>
                 )}
               </>
             )}
@@ -115,18 +123,26 @@ const VerifyEmail: React.FC = () => {
           <div className="p-4 rounded">
             <h3 className="text-xl font-semibold text-white">Account Management</h3>
             <div className="flex flex-col space-y-2 mt-2">
-              <button
-                onClick={() => setShowResetModal(true)}
-                className="w-full bg-gray-500 p-2 rounded text-white hover:bg-gray-600 shadow-lg"
+              <motion.div
+                whileTap={{ scale: 0.95 }}
               >
-                Reset Password
-              </button>
-              <button
-                onClick={() => setShowDeleteModal(true)}
-                className="w-full bg-red-500 p-2 rounded text-white hover:bg-red-600 shadow-lg"
+                <button
+                  onClick={() => setShowResetModal(true)}
+                  className="w-full bg-gray-500 p-2 rounded text-white hover:bg-gray-600 shadow-lg"
+                >
+                  Reset Password
+                </button>
+              </motion.div>
+              <motion.div
+                whileTap={{ scale: 0.95 }}
               >
-                Delete Account
-              </button>
+                <button
+                  onClick={() => setShowDeleteModal(true)}
+                  className="w-full bg-red-500 p-2 rounded text-white hover:bg-red-600 shadow-lg"
+                >
+                  Delete Account
+                </button>
+              </motion.div>
             </div>
           </div>
 

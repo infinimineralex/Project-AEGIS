@@ -30,11 +30,11 @@ const PasswordStrengthIndicator: React.FC<Props> = ({ password }) => {
   const { score, label, color } = calculateStrength(password);
   const maxScore = 5;
   const percentage = (score / maxScore) * 100;
-
+  // dynamic width
   return (
     <div className="mt-2">
       <div className="h-2 w-full bg-gray-400 rounded">
-        <div className={`h-full rounded ${color}`} style={{ width: `${percentage}%` }} />
+        <div className={`h-full rounded ${color}`} style={{ width: `${percentage}%` }} /> 
       </div>
       <p className="text-sm mt-1 text-gray-200">{label}</p>
     </div>

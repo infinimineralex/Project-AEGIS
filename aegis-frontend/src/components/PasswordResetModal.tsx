@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import api from '../utils/api';
 import { AuthContext } from '../contexts/AuthContext';
+import PasswordStrengthIndicator from '../components/PasswordStrengthIndicator';
 
 interface PasswordResetModalProps {
   onClose: () => void;
