@@ -93,6 +93,7 @@ const PasswordResetModal: React.FC<PasswordResetModalProps> = ({ onClose }) => {
               placeholder="Enter new password"
               className="p-2 w-full bg-gray-600 border border-gray-500 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-white"
             />
+            <PasswordStrengthIndicator password={newPassword} />
             <motion.div
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}

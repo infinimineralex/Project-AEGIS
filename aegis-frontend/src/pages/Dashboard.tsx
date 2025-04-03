@@ -10,6 +10,7 @@ import Notification from '../components/Notification';
 import DeleteAccountModal from '../components/DeleteAccountModal';
 import FeedbackPopup from '../components/FeedbackPopup';
 
+
 interface Credential {
   id: number;
   website: string;
@@ -314,6 +315,7 @@ const Dashboard: React.FC = () => {
                     onChange={handleChange}
                     className="mt-1 flex-1 block w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
                   />
+                  <PasswordStrengthIndicator password={form.password} />
                   <motion.button
                     type="button"
                     onClick={() => setShowFormPassword((prev) => !prev)}
