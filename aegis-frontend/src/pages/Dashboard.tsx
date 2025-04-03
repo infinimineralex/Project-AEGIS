@@ -9,7 +9,7 @@ import { FiEye, FiEyeOff, FiCopy } from 'react-icons/fi';
 import Notification from '../components/Notification';
 import DeleteAccountModal from '../components/DeleteAccountModal';
 import FeedbackPopup from '../components/FeedbackPopup';
-
+import PasswordStrengthIndicator from '../components/PasswordStrengthIndicator';
 
 interface Credential {
   id: number;
@@ -26,6 +26,7 @@ const Dashboard: React.FC = () => {
   const navigate = useNavigate();
 
   const [credentials, setCredentials] = useState<Credential[]>([]);
+  const [compromisedCredentials, setCompromisedCredentials] = useState<Set<number>>(new Set());
   const [error, setError] = useState<string>('');
 
   const [form, setForm] = useState({
@@ -49,6 +50,27 @@ const Dashboard: React.FC = () => {
 
   // New state for delete account modal
   const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
+
+  // New helper to check if password is pwned
+  const checkIfPwned = async (password: string): Promise<boolean> => {
+    const hash = CryptoJS.SHA1(password).toString().toUpperCase();
+    const prefix = hash.slice(0, 5);
+    const suffix = hash.slice(5);
+    try {
+      const res = await fetch(`https://api.pwnedpasswords.com/range/${prefix}`);
+      const text = await res.text();
+      const lines = text.split('\n');
+      for (const line of lines) {
+        const [hashSuffix] = line.split(':');
+        if (hashSuffix.trim() === suffix) {
+          return true;
+        }
+      }
+    } catch (error) {
+      console.error('Error checking HIBP API', error);
+    }
+    return false;
+  };
 
   // Fetch credentials from backend
   const fetchCredentials = async () => {
@@ -83,6 +105,17 @@ const Dashboard: React.FC = () => {
       );
 
       setCredentials(decryptedCredentials);
+
+      // Check each credential's password with HIBP API
+      const compromisedSet = new Set<number>();
+      await Promise.all(
+        decryptedCredentials.map(async (cred) => {
+          if (await checkIfPwned(cred.password)) {
+            compromisedSet.add(cred.id);
+          }
+        })
+      );
+      setCompromisedCredentials(compromisedSet);
     } catch (err: any) {
       setError('Failed to fetch credentials.');
       console.error(err);
@@ -389,17 +422,16 @@ const Dashboard: React.FC = () => {
                         Notes
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                        Status
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                         Actions
                       </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-600">
                     {credentials.map((cred) => (
-                      <motion.tr
-                        key={cred.id}
-                        //whileHover={{ scale: 1.02 }} scale this down
-                        //transition={{ duration: 0.3 }}
-                      >
+                      <motion.tr key={cred.id}>
                         <td className="px-6 py-4 whitespace-nowrap">{cred.website}</td>
                         <td className="px-6 py-4 whitespace-nowrap">{cred.username}</td>
                         <td className="px-6 py-4 whitespace-nowrap">
@@ -429,10 +461,18 @@ const Dashboard: React.FC = () => {
                               className="text-blue-400 hover:text-blue-300"
                             >
                               {visiblePasswordIds.has(cred.id) ? 'Hide' : 'Show'}
-                            </button> 
+                            </button>
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">{cred.notes}</td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          {compromisedCredentials.has(cred.id) && (
+                            <span className="text-red-500 font-semibold">Compromised</span>
+                          )}
+                          {!compromisedCredentials.has(cred.id) && (
+                            <span className="text-green-500 font-semibold">Uncompromised</span>
+                          )}
+                        </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <button
                             onClick={() => handleEdit(cred)}

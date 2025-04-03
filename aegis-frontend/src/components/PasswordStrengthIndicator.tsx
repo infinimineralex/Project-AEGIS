@@ -10,7 +10,7 @@ const calculateStrength = (password: string): { score: number; label: string; co
   if (password.length >= 10) score += 1;
   if (/[A-Z]/.test(password)) score += 1;
   if (/[0-9]/.test(password)) score += 1;
-  if (/[^A-Za-z0-9]/.test(password)) score += 1;
+  if (/[^A-Za-z0-9]/.test(password)) score += 1; // Special characters
 
   let label = 'Weak';
   let color = 'bg-red-500';

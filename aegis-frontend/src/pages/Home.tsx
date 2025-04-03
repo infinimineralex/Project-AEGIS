@@ -122,7 +122,7 @@ const Home: React.FC = () => {
               <FaLock className="mx-auto h-16 w-16 mb-4 text-white-500" />
               <h3 className="text-xl font-semibold mb-2 text-white">Privacy First</h3>
               <p className="text-gray-300">
-                We respect your privacy. Your salted master password and data are never stored or tracked, ensuring complete confidentiality.
+                We respect your privacy. Your salted master password and data are never stored or tracked, ensuring complete confidentiality.  Additionally, each password is checked against already-breached passwords with our Have I Been Pwned API integration.
               </p>
             </motion.div>
 
