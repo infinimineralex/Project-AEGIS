@@ -24,6 +24,7 @@ const Register: React.FC = () => {
   const [error, setError] = useState<string>('');
   const [qrUrl, setQrUrl] = useState<string>('');
   const [registered, setRegistered] = useState<boolean>(false);
+  const [step, setStep] = useState<number>(1);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -63,10 +64,11 @@ const Register: React.FC = () => {
         password: form.password,
       });
 
-      // If a twofa enrollment URL is returned, display the QR code; otherwise auto-login:
+      // If a twofa enrollment URL is returned, update progress and show QR code view
       if (response.data.twofaSecret) {
         setQrUrl(response.data.twofaSecret);
         setRegistered(true);
+        setStep(2);
       } else {
         login(response.data.token, form.masterPassword, response.data.salt);
         navigate('/dashboard');
@@ -82,6 +84,13 @@ const Register: React.FC = () => {
         className="min-h-screen w-full flex flex-col items-center justify-center bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: 'url(/public/background1.jpg)' }}
       >
+        {/* Progress Bar */}
+        <div className="mb-4 w-full max-w-md">
+          <div className="text-gray-100 text-sm mb-1">{`Step ${step} of 3: Setup 2FA`}</div>
+          <div className="w-full bg-gray-300 rounded-full h-2">
+            <div className="bg-gradient-to-r from-blue-500 to-red-500 h-2 rounded-full" style={{ width: `${(step/3)*100}%` }}></div>
+          </div>
+        </div>
         <motion.div
           className="max-w-md w-full bg-white/20 backdrop-blur-md p-8 shadow-lg rounded"
           initial={{ opacity: 0.5, y: 10 }}
@@ -123,6 +132,13 @@ const Register: React.FC = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
       >
+        {/* Progress Bar */}
+        <div className="mb-4">
+          <div className="text-gray-100 text-sm mb-1">{`Step ${step} of 3: Enter Details`}</div>
+          <div className="w-full bg-gray-300 rounded-full h-2">
+            <div className="bg-gradient-to-r from-blue-500 to-red-500 h-2 rounded-full" style={{ width: `${(step/3)*100}%` }}></div>
+          </div>
+        </div>
         <h2 className="mb-6 text-center text-3xl font-extrabold text-white">
           Create an Account
         </h2>

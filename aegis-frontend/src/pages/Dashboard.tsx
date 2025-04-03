@@ -5,7 +5,7 @@ import CryptoJS from 'crypto-js';
 import { useNavigate } from 'react-router-dom';
 import PasswordGenerator from '../components/PasswordGenerator';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiEye, FiEyeOff, FiCopy } from 'react-icons/fi';
+import { FiEye, FiEyeOff, FiCopy, FiLock } from 'react-icons/fi';
 import Notification from '../components/Notification';
 import DeleteAccountModal from '../components/DeleteAccountModal';
 import FeedbackPopup from '../components/FeedbackPopup';
@@ -280,130 +280,167 @@ const Dashboard: React.FC = () => {
         </div>
         {error && <div className="mb-4 text-red-500">{error}</div>}
         {user && !user.is_verified && (
-          <div className="mb-4 p-4 bg-gradient-to-r from-blue-500 to-red-500 text-white rounded">
-            Please verify your email to add credentials.
-            <button onClick={() => navigate('/verifyemail')} className="underline ml-2">
-              Verify Now
-            </button>
-          </div>
+          <>
+            {/* Updated progress bar for incomplete registration */}
+            <div className="mb-4">
+              <div className="text-gray-100 text-sm mb-1">Step 3 of 3: Verify Your Email</div>
+              <div className="w-full bg-gray-300 rounded-full h-2">
+                <div 
+                  className="bg-gradient-to-r from-blue-500 to-red-500 h-2 rounded-full" 
+                  style={{ width: `${(3/3)*100}%` }}
+                />
+              </div>
+            </div>
+            
+            <div className="mb-4 p-4 bg-gradient-to-r from-blue-500 to-red-500 text-white rounded">
+              Please verify your email to add credentials.
+              <button onClick={() => navigate('/verifyemail')} className="underline ml-2">
+                Verify Now
+              </button>
+            </div>
+          </>
         )}
 
         {/* Side-by-Side Layout for Form and Credentials */}
-        <div className="flex flex-col md:flex-row gap-6">
-          {/* Credential Form */}
+        <div className="flex flex-col md:flex-row gap-6 relative">
+          {/* Credential Form - Always render but may be overlaid */}
           <motion.div
-            className="w-full md:w-1/3 bg-white/20 backdrop-blur-md p-6 rounded-lg shadow-md"
+            className="w-full md:w-1/3 bg-white/20 backdrop-blur-md p-6 rounded-lg shadow-md relative hover:backdrop-blur-lg"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <h2 className="text-xl font-semibold mb-4">
-              {editing ? 'Edit Credential' : 'Add Credential'}
-            </h2>
-            <form onSubmit={handleAddOrUpdate} className="space-y-4">
-              {/* Website Field */}
-              <div>
-                <label htmlFor="website" className="block text-sm font-medium text-gray-300">
-                  Website
-                </label>
-                <input
-                  type="text"
-                  name="website"
-                  id="website"
-                  required
-                  value={form.website}
-                  onChange={handleChange}
-                  className="mt-1 block w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                />
-              </div>
-
-              {/* Username Field */}
-              <div>
-                <label htmlFor="username" className="block text-sm font-medium text-gray-300">
-                  Username
-                </label>
-                <input
-                  type="text"
-                  name="username"
-                  id="username"
-                  required
-                  value={form.username}
-                  onChange={handleChange}
-                  className="mt-1 block w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                />
-              </div>
-
-              {/* Password Field with Password Generator */}
-              <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-300">
-                  Password
-                </label>
-                <div className="relative z-50">
+            {/* Email Verification Overlay */}
+            {user && !user.is_verified && (
+              <motion.div
+                className="absolute inset-0 z-50 flex flex-col items-center justify-center rounded-lg bg-white/30"
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+              >
+                <FiLock className="mb-4 h-24 w-24 text-white drop-shadow-lg" />
+                <p className="mb-4 text-xl font-semibold text-white drop-shadow-lg">
+                  Email Verification Required
+                </p>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => navigate('/verifyemail')}
+                  className="rounded-lg bg-gradient-to-r from-blue-500 to-red-500 px-6 py-3 text-white shadow-lg hover:bg-gradient-to-l"
+                >
+                  Verify Your Email
+                </motion.button>
+              </motion.div>
+            )}
+            <div className={user && !user.is_verified ? "blur-sm" : ""}>
+              <h2 className="text-xl font-semibold mb-4">
+                {editing ? 'Edit Credential' : 'Add Credential'}
+              </h2>
+              <form onSubmit={handleAddOrUpdate} className="space-y-4">
+                {/* Website Field */}
+                <div>
+                  <label htmlFor="website" className="block text-sm font-medium text-gray-300">
+                    Website
+                  </label>
                   <input
-                    type={showFormPassword ? 'text' : 'password'}
-                    name="password"
-                    id="password"
+                    type="text"
+                    name="website"
+                    id="website"
                     required
-                    value={form.password}
+                    value={form.website}
                     onChange={handleChange}
                     className="mt-1 block w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
                   />
                 </div>
-                <div className="mt-2 relative z-50 flex items-center">
-                  <div className="flex-grow mr-2">
-                    <PasswordStrengthIndicator password={form.password} />
-                  </div>
-                  <div className="flex space-x-2">
-                    <motion.button
-                      type="button"
-                      onClick={() => setShowFormPassword((prev) => !prev)}
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.9 }}
-                      className="flex items-center justify-center w-12 h-12 bg-indigo-600 text-white rounded-md shadow-md hover:bg-indigo-700 focus:outline-none"
-                      title={showFormPassword ? 'Hide Password' : 'Show Password'}
-                    >
-                      {showFormPassword ? <FiEyeOff size={20} /> : <FiEye size={20} />}
-                    </motion.button>
-                    <PasswordGenerator
-                      setPassword={(pwd: string) =>
-                        setForm((prev) => ({ ...prev, password: pwd }))
-                      }
+
+                {/* Username Field */}
+                <div>
+                  <label htmlFor="username" className="block text-sm font-medium text-gray-300">
+                    Username
+                  </label>
+                  <input
+                    type="text"
+                    name="username"
+                    id="username"
+                    required
+                    value={form.username}
+                    onChange={handleChange}
+                    className="mt-1 block w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                  />
+                </div>
+
+                {/* Password Field with Password Generator */}
+                <div>
+                  <label htmlFor="password" className="block text-sm font-medium text-gray-300">
+                    Password
+                  </label>
+                  <div className="relative z-10">
+                    <input
+                      type={showFormPassword ? 'text' : 'password'}
+                      name="password"
+                      id="password"
+                      required
+                      value={form.password}
+                      onChange={handleChange}
+                      className="mt-1 block w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
                     />
                   </div>
+                  <div className="mt-2 relative z-10 flex items-center">
+                    <div className="flex-grow mr-2">
+                      <PasswordStrengthIndicator password={form.password} />
+                    </div>
+                    <div className="flex space-x-2">
+                      <motion.button
+                        type="button"
+                        onClick={() => setShowFormPassword((prev) => !prev)}
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                        className="flex items-center justify-center w-12 h-12 bg-indigo-600 text-white rounded-md shadow-md hover:bg-indigo-700 focus:outline-none"
+                        title={showFormPassword ? 'Hide Password' : 'Show Password'}
+                      >
+                        {showFormPassword ? <FiEyeOff size={20} /> : <FiEye size={20} />}
+                      </motion.button>
+                      <PasswordGenerator
+                        setPassword={(pwd: string) =>
+                          setForm((prev) => ({ ...prev, password: pwd }))
+                        }
+                      />
+                    </div>
+                  </div>
                 </div>
-              </div>
 
-              {/* Notes Field */}
-              <div>
-                <label htmlFor="notes" className="block text-sm font-medium text-gray-300">
-                  Notes (Optional)
-                </label>
-                <textarea
-                  name="notes"
-                  id="notes"
-                  value={form.notes}
-                  onChange={handleChange}
-                  style={{ minHeight: '70px' }}
-                  className="mt-1 block w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                  rows={3}
-                ></textarea>
-              </div>
+                {/* Notes Field */}
+                <div>
+                  <label htmlFor="notes" className="block text-sm font-medium text-gray-300">
+                    Notes (Optional)
+                  </label>
+                  <textarea
+                    name="notes"
+                    id="notes"
+                    value={form.notes}
+                    onChange={handleChange}
+                    style={{ minHeight: '70px' }}
+                    className="mt-1 block w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                    rows={3}
+                  ></textarea>
+                </div>
 
-              {/* Submit Button */}
-              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.95 }}>
-                <button
-                  type="submit"
-                  className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-white bg-gradient-to-r from-blue-500 to-red-500 hover:bg-gradient-to-l focus:outline-none"
-                >
-                  {editing ? 'Update' : 'Add'}
-                </button>
-              </motion.div>
-            </form>
+                {/* Submit Button */}
+                <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.95 }}>
+                  <button
+                    type="submit"
+                    className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-white bg-gradient-to-r from-blue-500 to-red-500 hover:bg-gradient-to-l focus:outline-none"
+                  >
+                    {editing ? 'Update' : 'Add'}
+                  </button>
+                </motion.div>
+              </form>
+            </div>
           </motion.div>
 
-          {/* Credentials List */}
+          {/* Credentials List - No overlay */}
           <motion.div
-            className="w-full md:w-2/3 bg-white/20 backdrop-blur-md p-6 rounded-lg shadow-md"
+            className="w-full md:w-2/3 bg-white/20 backdrop-blur-md p-6 rounded-lg shadow-md hover:backdrop-blur-lg"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
