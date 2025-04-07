@@ -82,7 +82,7 @@ const Register: React.FC = () => {
     return (
       <div 
         className="min-h-screen w-full flex flex-col items-center justify-center bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: 'url(/public/background1.jpg)' }}
+        style={{ backgroundImage: 'url(background2.jpg)' }}
       >
         {/* Progress Bar */}
         <div className="mb-4 w-full max-w-md">
@@ -124,7 +124,7 @@ const Register: React.FC = () => {
   return (
     <div 
       className="min-h-screen w-full flex items-center justify-center bg-cover bg-center bg-no-repeat"
-      style={{ backgroundImage: 'url(/public/background1.jpg)' }}
+      style={{ backgroundImage: 'url(background2.jpg)' }}
     >
       <motion.div
         className="max-w-md w-full bg-white/20 backdrop-blur-md p-8 shadow-lg rounded"

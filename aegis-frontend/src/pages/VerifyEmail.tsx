@@ -62,7 +62,7 @@ const VerifyEmail: React.FC = () => {
   return (
     <div
       className="min-h-screen flex items-center justify-center bg-cover bg-center bg-no-repeat"
-      style={{ backgroundImage: 'url(/public/background1.jpg)' }}
+      style={{ backgroundImage: 'url(background2.jpg)' }}
     >
       <motion.div className="max-w-md w-full bg-white/20 backdrop-blur-md p-8 shadow-lg rounded space-y-6">
         <h2 className="text-3xl font-extrabold text-white text-center">

@@ -7,7 +7,7 @@ import TypingText from '../components/TypingText';
 
 const Home: React.FC = () => {
   return (
-    <div className="relative min-h-screen bg-cover bg-center bg-no-repeat" style={{ backgroundImage: 'url(/public/background1.jpg)' }}>
+    <div className="relative min-h-screen bg-cover bg-center bg-no-repeat" style={{ backgroundImage: 'url(background2.jpg)' }}>
       {/* Darkening overlay */}
       <div className="absolute inset-0 bg-black opacity-60 z-0"></div>
       {/* Mouse move flair, only on landing page */}
