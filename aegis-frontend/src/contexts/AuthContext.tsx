@@ -24,6 +24,7 @@ export const AuthContext = createContext<AuthContextType>({
   token: null,
   decryptedKey: null,
   login: () => {},
+  updateUser: () => {},
   logout: () => {},
 });
 
