@@ -107,7 +107,7 @@ const Home: React.FC = () => {
               <FaShieldAlt className="mx-auto h-16 w-16 mb-4 text-white-500" />
               <h3 className="text-xl font-semibold mb-2 text-white">End-to-End Encryption</h3>
               <p className="text-gray-300">
-                Your data is encrypted on your device, instantly. Only you hold the keys to access your sensitive information.
+                Your data is encrypted on your device and on our server, instantly. Only you hold the keys to access your sensitive information.
               </p>
             </motion.div>
 
@@ -122,7 +122,7 @@ const Home: React.FC = () => {
               <FaLock className="mx-auto h-16 w-16 mb-4 text-white-500" />
               <h3 className="text-xl font-semibold mb-2 text-white">Privacy First</h3>
               <p className="text-gray-300">
-                We respect your privacy. Your salted master password and data are never stored or tracked, ensuring complete confidentiality.  Additionally, each password is checked against already-breached passwords with our Have I Been Pwned API integration.
+                We respect your privacy. Your salted master password is never stored or tracked, ensuring complete confidentiality.  Additionally, each password is checked against already-breached passwords with our Have I Been Pwned API integration.
               </p>
             </motion.div>
 
@@ -137,7 +137,7 @@ const Home: React.FC = () => {
               <FaTachometerAlt className="mx-auto h-16 w-16 mb-4 text-white-500" />
               <h3 className="text-xl font-semibold mb-2 text-white">Fast and Reliable</h3>
               <p className="text-gray-300">
-                Experience soon-to-be lightning-fast access to your passwords and credentials across all your devices with our optimized infrastructure.
+                Experience lightning-fast access to your passwords and credentials across all your devices with our optimized infrastructure.
               </p>
             </motion.div>
           </div>
@@ -176,7 +176,7 @@ const Home: React.FC = () => {
                 Aegis uses robust encryption standards to secure your passwords. Each password is encrypted using your unique salted master key directly on your device, ensuring that only you can access your sensitive information.
               </p>
               <p className="text-lg text-gray-100">
-                With planned seamless synchronization across devices, your credentials will be accessible wherever you go, without compromising security.
+                With seamless synchronization across devices, your credentials are accessible wherever you go, without compromising security.
               </p>
             </motion.div>
           </div>
