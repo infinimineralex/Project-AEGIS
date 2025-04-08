@@ -117,15 +117,15 @@ const Dashboard: React.FC = () => {
       );
       setCompromisedCredentials(compromisedSet);
     } catch (err: any) {
-      setError('Failed to fetch credentials.');
+      setError('Failed to fetch credentials. If you got here by reloading, please do not access this this page with a reload. This is interpreted as malicious.');
       console.error(err);
     }
   };
 
   useEffect(() => {
+    if (!token || !decryptedKey) return;
     fetchCredentials();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [token, decryptedKey]);
 
   // Handle form changes
   const handleChange = (
@@ -429,7 +429,7 @@ const Dashboard: React.FC = () => {
                 <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.95 }}>
                   <button
                     type="submit"
-                    className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-white bg-gradient-to-r from-blue-500 to-red-500 hover:bg-gradient-to-l focus:outline-none"
+                    className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-lg text-white bg-gradient-to-r from-blue-500 to-red-500 hover:bg-gradient-to-l focus:outline-none"
                   >
                     {editing ? 'Update' : 'Add'}
                   </button>
