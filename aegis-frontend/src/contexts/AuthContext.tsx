@@ -16,6 +16,7 @@ interface AuthContextType {
   token: string | null;
   decryptedKey: string | null;
   login: (token: string, masterPassword: string, salt: string) => void;
+  updateUser: (newToken: string) => void;
   logout: () => void;
 }
 // Specifies the context's structure, including user info, token, and functions to login and logout.
