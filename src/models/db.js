@@ -1,65 +1,93 @@
-const sqlite3 = require('sqlite3').verbose();
-const path = require('path');
+const { Pool } = require('pg');
+require('dotenv').config();
 
-/*
-The users table stores user credentials with hashed passwords.
-The passwords table stores encrypted credentials related to various websites.
-The password field here stores the AES-256 encrypted passwords sent from the client.
-*/
-
-// Connects to SQLite database
-const dbPath = path.resolve(__dirname, 'aegis.db');
-const db = new sqlite3.Database(dbPath, (err) => {
-    if (err) {
-        console.error('Could not connect to database', err);
-    } else {
-        console.log('Connected to SQLite database');
-    }
+const pool = new Pool({
+  connectionString: process.env.DATABASE_PUBLIC_URL,
+  ssl: {
+    // Depending on the Railway settings, I may need this:
+    rejectUnauthorized: false
+  }
 });
 
-// Initializes database tables
-db.serialize(() => {
-    // Users table
-    db.run(`
-        CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            username TEXT UNIQUE NOT NULL,
-            email TEXT UNIQUE NOT NULL,
-            password TEXT NOT NULL,
-            encryption_salt TEXT NOT NULL,
-            twofa_secret TEXT,
-            is_verified INTEGER DEFAULT 0,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-        )
-    `);
-    
-    // Passwords table
-    db.run(`
-        CREATE TABLE IF NOT EXISTS passwords (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER NOT NULL,
-            website TEXT NOT NULL,
-            username TEXT NOT NULL,
-            password TEXT NOT NULL,
-            notes TEXT,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
-        )
+pool.on('connect', () => {
+  console.log('Connected to PostgreSQL via Railway');
+});
+
+const createTables = async () => {
+  try {
+    // Create users table
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS users (
+        id SERIAL PRIMARY KEY,
+        username TEXT UNIQUE NOT NULL,
+        email TEXT UNIQUE NOT NULL,
+        password TEXT NOT NULL,
+        encryption_salt TEXT NOT NULL,
+        twofa_secret TEXT,
+        is_verified INTEGER DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
     `);
 
-    // New table for verification codes (for email verification and delete account)
-    db.run(`
+    // Passwords table
+    await pool.query(`
+        CREATE TABLE IF NOT EXISTS passwords (
+          id SERIAL PRIMARY KEY,
+          user_id INTEGER NOT NULL,
+          website TEXT NOT NULL,
+          username TEXT NOT NULL,
+          password TEXT NOT NULL,
+          notes TEXT,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+        )
+      `);
+  
+      // Verification Codes table
+    await pool.query(`
         CREATE TABLE IF NOT EXISTS verification_codes (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id SERIAL PRIMARY KEY,
             user_id INTEGER NOT NULL,
             code TEXT NOT NULL,
             type TEXT NOT NULL,
-            expires_at DATETIME NOT NULL,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            expires_at TIMESTAMP NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
         )
     `);
-});
+
+    console.log('Tables are set up');
+  } catch (err) {
+    console.error('Error creating tables:', err);
+  }
+};
+
+// Initialize table creation
+createTables();
+
+// Helper functions to mimic sqlite3’s API
+const db = {
+  run: (text, params, callback) => {
+    pool.query(text, params)
+      .then(result => callback && callback(null, result))
+      .catch(err => callback && callback(err));
+  },
+
+  get: (text, params, callback) => {
+    pool.query(text, params)
+      .then(result => callback(null, result.rows[0]))
+      .catch(err => callback(err));
+  },
+
+  all: (text, params, callback) => {
+    pool.query(text, params)
+      .then(result => callback(null, result.rows))
+      .catch(err => callback(err));
+  },
+
+  // If raw access is needed:
+  query: (text, params) => pool.query(text, params),
+};
 
 module.exports = db;

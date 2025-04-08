@@ -20,7 +20,7 @@ exports.register = (req, res) => {
         return res.status(400).json({ message: 'Please provide username, email, and password.' });
     }
 
-    const checkUserQuery = `SELECT * FROM users WHERE username = ? OR email = ?`;
+    const checkUserQuery = `SELECT * FROM users WHERE username = $1 OR email = $2`;
     db.get(checkUserQuery, [username, email], (err, row) => {
         if (err) {
             return res.status(500).json({ message: 'Database error.', error: err.message });
@@ -43,9 +43,11 @@ exports.register = (req, res) => {
             const twofaSecret = speakeasy.generateSecret({ length: 20 });
 
             // Insert new user including the encryptionSalt and twofaSecret.
-            // New users are unverified by default, so is_verified is set to 0.
-            const insertUserQuery = `INSERT INTO users (username, email, password, encryption_salt, twofa_secret, is_verified) VALUES (?, ?, ?, ?, ?, 0)`;
-            db.run(insertUserQuery, [username, email, hashedPassword, encryptionSalt, twofaSecret.base32], function(insertErr) {
+            const insertUserQuery = `
+                INSERT INTO users (username, email, password, encryption_salt, twofa_secret, is_verified) 
+                VALUES ($1, $2, $3, $4, $5, 0) 
+                RETURNING id`;
+            db.run(insertUserQuery, [username, email, hashedPassword, encryptionSalt, twofaSecret.base32], function(insertErr, result) {
                 if (insertErr) {
                     console.error('DB Insert error:', insertErr);
                     return res.status(500).json({ message: 'Error creating user.', error: insertErr.message });
@@ -53,7 +55,12 @@ exports.register = (req, res) => {
 
                 // Generate JWT (expires in 2 hours)
                 const token = jwt.sign(
-                    { id: this.lastID, username, email, is_verified: 0 },
+                    { 
+                        id: result.rows[0].id, 
+                        username, 
+                        email, 
+                        is_verified: 0 
+                    },
                     process.env.JWT_SECRET,
                     { expiresIn: '2h' }
                 );
@@ -83,7 +90,7 @@ exports.login = (req, res) => {
         return res.status(400).json({ message: 'Please provide username and password.' });
     }
 
-    const getUserQuery = `SELECT * FROM users WHERE username = ?`;
+    const getUserQuery = `SELECT * FROM users WHERE username = $1`;
     db.get(getUserQuery, [username], (err, user) => {
         if (err) {
             return res.status(500).json({ message: 'Database error.', error: err.message });
@@ -112,7 +119,12 @@ exports.login = (req, res) => {
 
             // Generate the token including is_verified from user record.
             const token = jwt.sign(
-                { id: user.id, username: user.username, email: user.email, is_verified: user.is_verified },
+                { 
+                    id: user.id, 
+                    username: user.username, 
+                    email: user.email, 
+                    is_verified: user.is_verified 
+                },
                 process.env.JWT_SECRET,
                 { expiresIn: '2h' }
             );
@@ -128,7 +140,7 @@ exports.login = (req, res) => {
 
 exports.verify2FA = (req, res) => {
     const { userId, token: userToken } = req.body;
-    const getUserQuery = `SELECT * FROM users WHERE id = ?`;
+    const getUserQuery = `SELECT * FROM users WHERE id = $1`;
     db.get(getUserQuery, [userId], (err, user) => {
         if (err || !user) {
             return res.status(400).json({ message: 'User not found.' });
@@ -142,7 +154,12 @@ exports.verify2FA = (req, res) => {
             return res.status(400).json({ message: 'Invalid 2FA token.' });
         }
         const jwtToken = jwt.sign(
-            { id: user.id, username: user.username, email: user.email, is_verified: user.is_verified },
+            { 
+                id: user.id, 
+                username: user.username, 
+                email: user.email, 
+                is_verified: user.is_verified 
+            },
             process.env.JWT_SECRET,
             { expiresIn: '2h' }
         );

@@ -27,6 +27,7 @@
     "googleapis": "^148.0.0",
     "jsonwebtoken": "^9.0.2",
     "nodemailer": "^6.10.0",
+    "pg": "^8.14.1",
     "speakeasy": "^2.0.0",
     "sqlite3": "^5.1.7"
   },

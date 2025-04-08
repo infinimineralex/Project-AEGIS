@@ -20,18 +20,19 @@ exports.createCredential = (req, res) => {
 
     const insertPasswordQuery = `
         INSERT INTO passwords (user_id, website, username, password, notes)
-        VALUES (?, ?, ?, ?, ?)
+        VALUES ($1, $2, $3, $4, $5)
+        RETURNING id
     `;
     db.run(
         insertPasswordQuery,
         [userId, website, username, password, notes || ''],
-        function(err) {
+        function(err, result) {
             if (err) {
                 return res.status(500).json({ message: 'Error saving credential.', error: err.message });
             }
             return res.status(201).json({ 
                 message: 'Credential saved successfully.', 
-                credentialId: this.lastID 
+                credentialId: result.rows[0].id 
             });
         }
     );
@@ -44,7 +45,7 @@ exports.getAllCredentials = (req, res) => {
     const getCredentialsQuery = `
         SELECT id, website, username, password, notes, created_at, updated_at 
         FROM passwords 
-        WHERE user_id = ?
+        WHERE user_id = $1
     `;
 
     db.all(getCredentialsQuery, [userId], (err, rows) => {
@@ -71,8 +72,8 @@ exports.updateCredential = (req, res) => {
 
     const updateQuery = `
         UPDATE passwords 
-        SET website = ?, username = ?, password = ?, notes = ?, updated_at = CURRENT_TIMESTAMP 
-        WHERE id = ? AND user_id = ?
+        SET website = $1, username = $2, password = $3, notes = $4, updated_at = NOW()
+        WHERE id = $5 AND user_id = $6
     `;
 
     db.run(
@@ -97,7 +98,7 @@ exports.deleteCredential = (req, res) => {
 
     const deleteQuery = `
         DELETE FROM passwords 
-        WHERE id = ? AND user_id = ?
+        WHERE id = $1 AND user_id = $2
     `;
 
     db.run(deleteQuery, [credentialId, userId], function(err) {
