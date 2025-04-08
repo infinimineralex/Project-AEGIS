@@ -78,6 +78,10 @@ const Dashboard: React.FC = () => {
       setError('Authentication token missing.');
       return;
     }
+    if (!decryptedKey) {
+      console.warn('No decryption key yet, skipping fetch.');
+      return;
+    }
 
     try {
       const response = await api.get('/api/passwords', {
@@ -123,9 +127,9 @@ const Dashboard: React.FC = () => {
   };
 
   useEffect(() => {
+    if (!token || !decryptedKey) return;
     fetchCredentials();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [token, decryptedKey]);
 
   // Handle form changes
   const handleChange = (
