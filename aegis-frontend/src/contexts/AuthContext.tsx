@@ -43,9 +43,7 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
-  const [decryptedKey, setDecryptedKey] = useState<string | null>(
-    () => localStorage.getItem('decryptedKey')
-  );
+  const [decryptedKey, setDecryptedKey] = useState<string | null>(null);
 
   // Function to parse JWT and extract user info
   const parseJWT = (token: string): User | null => {
@@ -85,13 +83,15 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
     localStorage.setItem('token', token);
     localStorage.setItem('encryptionSalt', salt);
     setToken(token);
+
     const saltWA = CryptoJS.enc.Hex.parse(salt);
     const key = CryptoJS.PBKDF2(masterPassword, saltWA, {
       keySize: 256 / 32,
-      iterations: 1000,  
+      iterations: 1000,
     }).toString();
-    setDecryptedKey(decryptedKey);
-    localStorage.setItem('decryptedKey', decryptedKey);
+
+    setDecryptedKey(key);
+    localStorage.setItem('decryptedKey', key);
   };
 
   // Function to update user state with a new token without altering the decryption key.
@@ -103,11 +103,12 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
   };
 
   const logout = () => {
-      localStorage.removeItem('token');
-      setToken(null);
-      setUser(null);
-      setDecryptedKey(null);
-      navigate('/');
+    localStorage.removeItem('token');
+    localStorage.removeItem('decryptedKey');
+    setToken(null);
+    setUser(null);
+    setDecryptedKey(null);
+    navigate('/');
   };
 
   return (
