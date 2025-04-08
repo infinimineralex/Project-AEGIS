@@ -117,15 +117,15 @@ const Dashboard: React.FC = () => {
       );
       setCompromisedCredentials(compromisedSet);
     } catch (err: any) {
-      setError('Failed to fetch credentials. If you got here by reloading, please do not access this this page with a reload. This is interpreted as malicious.');
+      setError('Failed to fetch credentials. If you got here by reloading, please do not access this this page with a reload. This is interpreted as malicious. As such, please log in again to see your passwords.');
       console.error(err);
     }
   };
 
   useEffect(() => {
-    if (!token || !decryptedKey) return;
     fetchCredentials();
-  }, [token, decryptedKey]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Handle form changes
   const handleChange = (

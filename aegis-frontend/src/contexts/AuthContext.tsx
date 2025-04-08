@@ -43,7 +43,9 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
-  const [decryptedKey, setDecryptedKey] = useState<string | null>(null);
+  const [decryptedKey, setDecryptedKey] = useState<string | null>(
+    () => localStorage.getItem('decryptedKey')
+  );
 
   // Function to parse JWT and extract user info
   const parseJWT = (token: string): User | null => {
@@ -88,7 +90,8 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
       keySize: 256 / 32,
       iterations: 1000,  
     }).toString();
-    setDecryptedKey(key);
+    setDecryptedKey(decryptedKey);
+    localStorage.setItem('decryptedKey', decryptedKey);
   };
 
   // Function to update user state with a new token without altering the decryption key.
