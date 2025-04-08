@@ -22,9 +22,11 @@ const Register: React.FC = () => {
   });
 
   const [error, setError] = useState<string>('');
-  const [qrUrl, setQrUrl] = useState<string>('');
-  const [registered, setRegistered] = useState<boolean>(false);
-  const [step, setStep] = useState<number>(1);
+  // state for two-factor enrollment
+  const [twofaSecret, setTwofaSecret] = useState<string>('');
+  const [twofaCode, setTwofaCode] = useState<string>('');
+  const [tempUserId, setTempUserId] = useState<number | null>(null);
+  const [step, setStep] = useState<number>(1); // 1: basic info; 2: 2FA verification
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -32,10 +34,10 @@ const Register: React.FC = () => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
+  // Step 1: Submit basic registration info
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Basic validation
     if (form.password !== form.confirmPassword) {
       setError('Passwords do not match.');
       return;
@@ -46,7 +48,6 @@ const Register: React.FC = () => {
       return;
     }
     
-    // Length validations
     if (form.password.length < MIN_PASSWORD_LENGTH) {
       setError(`Password must be at least ${MIN_PASSWORD_LENGTH} characters long.`);
       return;
@@ -64,12 +65,14 @@ const Register: React.FC = () => {
         password: form.password,
       });
 
-      // If a twofa enrollment URL is returned, update progress and show QR code view
+      // If the response includes a two-factor secret, require 2FA verification.
       if (response.data.twofaSecret) {
-        setQrUrl(response.data.twofaSecret);
-        setRegistered(true);
+        setTwofaSecret(response.data.twofaSecret);
+        setTempUserId(response.data.userId);  // Ensure backend returns the new user’s id.
         setStep(2);
+        setError('');
       } else {
+        // Otherwise, log in directly.
         login(response.data.token, form.masterPassword, response.data.salt);
         navigate('/dashboard');
       }
@@ -78,44 +81,76 @@ const Register: React.FC = () => {
     }
   };
 
-  if (registered && qrUrl) {
+  // Step 2: Verify the 2FA code
+  const handleTwofaVerify = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!tempUserId) {
+      setError('Temporary user data missing.');
+      return;
+    }
+    try {
+      const verifyResponse = await api.post('/api/auth/verify-2fa', {
+        userId: tempUserId,
+        token: twofaCode,
+      });
+      // After successful 2FA verification, log in the user.
+      login(verifyResponse.data.token, form.masterPassword, verifyResponse.data.salt);
+      navigate('/dashboard');
+    } catch (err: any) {
+      setError(err.response?.data?.message || '2FA verification failed.');
+    }
+  };
+
+  if (step === 2) {
     return (
       <div 
         className="min-h-screen w-full flex flex-col items-center justify-center bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: 'url(background2.jpg)' }}
       >
-        {/* Progress Bar */}
-        <div className="mb-4 w-full max-w-md">
-          <div className="text-gray-100 text-sm mb-1">{`Step ${step} of 3: Setup 2FA`}</div>
-          <div className="w-full bg-gray-300 rounded-full h-2">
-            <div className="bg-gradient-to-r from-blue-500 to-red-500 h-2 rounded-full" style={{ width: `${(step/3)*100}%` }}></div>
-          </div>
-        </div>
         <motion.div
           className="max-w-md w-full bg-white/20 backdrop-blur-md p-8 shadow-lg rounded"
           initial={{ opacity: 0.5, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
         >
+          {/* Progress Bar */}
+          <div className="mb-4">
+            <div className="text-gray-100 text-sm mb-1">Step 2 of 3: 2FA Verification</div>
+            <div className="w-full bg-gray-300 rounded-full h-2">
+              <div className="bg-gradient-to-r from-blue-500 to-red-500 h-2 rounded-full" style={{ width: "66%" }}></div>
+            </div>
+          </div>
           <h2 className="mb-6 text-center text-3xl font-extrabold text-white">
-            Registration Successful!
+            Setup Two‑Factor Authentication
           </h2>
           <p className="mb-4 text-gray-100">
-            DO NOT SKIP THIS STEP. Please scan the QR code below with your authenticator app to enroll for two‑factor authentication.
+            Scan the QR code below in your authenticator app, then enter the generated code.
           </p>
           <div className="flex justify-center mb-4">
             <div className="p-2 bg-gradient-to-r from-blue-500 to-red-500 rounded shadow-lg">
               <div className="p-5 rounded bg-white">
-                <QRCodeSVG value={qrUrl} size={200} bgColor="#ffffff" fgColor="#000000" />
+                <QRCodeSVG value={twofaSecret} size={200} bgColor="#ffffff" fgColor="#000000" />
               </div>
             </div>
           </div>
-          <button 
-            onClick={() => navigate('/login')}
-            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-white bg-gradient-to-r from-blue-500 to-red-500 hover:bg-gradient-to-l focus:outline-none"
-          >
-            Proceed to Login
-          </button>
+          <form onSubmit={handleTwofaVerify} className="space-y-4">
+            <input
+              type="text"
+              value={twofaCode}
+              onChange={(e) => setTwofaCode(e.target.value)}
+              placeholder="Enter 2FA code"
+              className="w-full p-2 rounded bg-gray-600 border border-gray-500 shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+            />
+            <motion.div whileTap={{ scale: 0.95 }}>
+              <button
+                type="submit"
+                className="w-full bg-gradient-to-r from-blue-500 to-red-500 p-2 rounded text-white hover:bg-gradient-to-l shadow-lg"
+              >
+                Verify 2FA Code
+              </button>
+            </motion.div>
+          </form>
+          {error && <p className="text-red-300 mt-2">{error}</p>}
         </motion.div>
       </div>
     );
@@ -134,19 +169,17 @@ const Register: React.FC = () => {
       >
         {/* Progress Bar */}
         <div className="mb-4">
-          <div className="text-gray-100 text-sm mb-1">{`Step ${step} of 3: Enter Details`}</div>
+          <div className="text-gray-100 text-sm mb-1">Step 1 of 3: Enter Account Details</div>
           <div className="w-full bg-gray-300 rounded-full h-2">
-            <div className="bg-gradient-to-r from-blue-500 to-red-500 h-2 rounded-full" style={{ width: `${(step/3)*100}%` }}></div>
+            <div className="bg-gradient-to-r from-blue-500 to-red-500 h-2 rounded-full" style={{ width: "33%" }}></div>
           </div>
         </div>
         <h2 className="mb-6 text-center text-3xl font-extrabold text-white">
           Create an Account
         </h2>
-
         {error && <div className="mb-4 text-gray-100">{error}</div>}
-
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Username Field */}
+          {/* Username, Email, Password, Master Password fields remain as before */}
           <div>
             <label
               htmlFor="username"
@@ -262,12 +295,7 @@ const Register: React.FC = () => {
               className="mt-1 block w-full px-3 py-2 bg-gray-600 border border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
             />
           </div>
-
-          {/* Submit Button */}
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
+          <motion.div whileTap={{ scale: 1.05 }} whileHover={{ scale: 1.02 }}>
             <button
               type="submit"
               className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-white bg-gradient-to-r from-blue-500 to-red-500 hover:bg-gradient-to-l focus:outline-none"
@@ -276,8 +304,6 @@ const Register: React.FC = () => {
             </button>
           </motion.div>
         </form>
-
-        {/* Link to Login */}
         <div className="mt-4 text-center text-gray-100">
           Already have an account?{' '}
           <Link

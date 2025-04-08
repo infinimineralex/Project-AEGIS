@@ -5,17 +5,17 @@ const crypto = require('crypto');
 const speakeasy = require('speakeasy');
 
 /*
-Registration:
-Validates incoming data.
-Checks for existing users.
-Hashes the password using bcryptjs.
-Inserts the new user into the database.
-Generates a JWT token for session management.
+Registration Controller with 2FA Enrollment:
+• Validates input and ensures username/email uniqueness.
+• Generates an encryption salt and hashes the password.
+• Generates a TOTP secret for 2FA setup.
+• Inserts the new user data along with the twofa_secret.
+• Returns a JSON response with twofaSecret (otpauth URL), userId, and salt.
+  (JWT token is withheld until 2FA verification is complete.)
 */
 exports.register = (req, res) => {
     const { username, email, password } = req.body;
 
-    // Validate input
     if (!username || !email || !password) {
         return res.status(400).json({ message: 'Please provide username, email, and password.' });
     }
@@ -29,47 +29,37 @@ exports.register = (req, res) => {
             return res.status(400).json({ message: 'Username or email already exists.' });
         }
 
-        // Generate a unique salt (16 bytes, hex encoded)
+        // Generate a unique encryption salt (16 bytes, hex encoded)
         const encryptionSalt = crypto.randomBytes(16).toString('hex');
 
-        // Hash password
+        // Hash the user's password
         bcrypt.hash(password, 10, (hashErr, hashedPassword) => {
             if (hashErr) { 
                 console.error('Hashing error:', hashErr);
                 return res.status(500).json({ message: 'Error hashing password.', error: hashErr.message });
             }
 
-            // Generate TOTP secret for 2FA enrollment
+            // Generate a TOTP secret for 2FA enrollment
             const twofaSecret = speakeasy.generateSecret({ length: 20 });
 
-            // Insert new user including the encryptionSalt and twofaSecret.
+            // Insert new user including the twofa_secret
             const insertUserQuery = `
                 INSERT INTO users (username, email, password, encryption_salt, twofa_secret, is_verified) 
-                VALUES ($1, $2, $3, $4, $5, 0) 
-                RETURNING id`;
+                VALUES ($1, $2, $3, $4, $5, 0)
+                RETURNING id
+            `;
             db.run(insertUserQuery, [username, email, hashedPassword, encryptionSalt, twofaSecret.base32], function(insertErr, result) {
                 if (insertErr) {
                     console.error('DB Insert error:', insertErr);
                     return res.status(500).json({ message: 'Error creating user.', error: insertErr.message });
                 }
-
-                // Generate JWT (expires in 2 hours)
-                const token = jwt.sign(
-                    { 
-                        id: result.rows[0].id, 
-                        username, 
-                        email, 
-                        is_verified: 0 
-                    },
-                    process.env.JWT_SECRET,
-                    { expiresIn: '2h' }
-                );
-
+                // Extract new user's id from the result
+                const newUserId = result.rows[0].id;
                 return res.status(201).json({ 
-                    message: 'User registered successfully.',
-                    token,
-                    salt: encryptionSalt,
-                    twofaSecret: twofaSecret.otpauth_url
+                    message: 'User registered successfully. Please verify your 2FA code.',
+                    twofaSecret: twofaSecret.otpauth_url,
+                    userId: newUserId,
+                    salt: encryptionSalt
                 });
             });
         });

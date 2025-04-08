@@ -8,7 +8,7 @@ import PasswordResetModal from '../components/PasswordResetModal';
 import FeedbackPopup from '../components/FeedbackPopup';
 
 const VerifyEmail: React.FC = () => {
-  const { user, token } = useContext(AuthContext);
+  const { user, token, updateUser } = useContext(AuthContext);
   const navigate = useNavigate();
 
   const [verificationCode, setVerificationCode] = useState('');
@@ -31,7 +31,10 @@ const VerifyEmail: React.FC = () => {
       );
       setVerifyMessage(response.data.message);
       setVerifyError('');
-      // Optionally update the user state here.
+      // Update user state with the new token returned from verification
+      if(response.data.token){
+        updateUser(response.data.token);
+      }
     } catch (err: any) {
       const errMsg = err.response?.data?.message || 'Verification failed.';
       setVerifyError(errMsg);

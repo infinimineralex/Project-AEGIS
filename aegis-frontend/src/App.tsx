@@ -8,6 +8,8 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Header from './components/Header';
 import LoadingScreen from './components/LoadingScreen';
 import VerifyEmail from './pages/VerifyEmail';
+import NotFound from './pages/NotFound';
+
 
 const App: React.FC = () => {
   const [loading, setLoading] = useState(true);
@@ -64,7 +66,7 @@ const App: React.FC = () => {
         />
 
         {/* Fallback Route */}
-        <Route path="*" element={<Home />} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </div>
   );

@@ -81,30 +81,33 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
     localStorage.setItem('token', token);
     localStorage.setItem('encryptionSalt', salt);
     setToken(token);
-
-    // Parse the salt from hex string into a WordArray
     const saltWA = CryptoJS.enc.Hex.parse(salt);
-    // Derive encryption key using PBKDF2 with 1000 iterations (keySize: 256 bits) though I may wanna swap to argon2 later 
     const key = CryptoJS.PBKDF2(masterPassword, saltWA, {
       keySize: 256 / 32,
       iterations: 1000,  
     }).toString();
-
     setDecryptedKey(key);
   };
 
-  // Logout function
+  // Function to update user state with a new token without altering the decryption key.
+  const updateUser = (newToken: string) => {
+      setToken(newToken);
+      localStorage.setItem('token', newToken);
+      const newUser = parseJWT(newToken);
+      setUser(newUser);
+  };
+
   const logout = () => {
-    localStorage.removeItem('token');
-    setToken(null);
-    setUser(null);
-    setDecryptedKey(null);
-    navigate('/');
+      localStorage.removeItem('token');
+      setToken(null);
+      setUser(null);
+      setDecryptedKey(null);
+      navigate('/');
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, decryptedKey, login, logout }}>
-      {children}
-    </AuthContext.Provider>
+      <AuthContext.Provider value={{ user, token, decryptedKey, login, logout, updateUser }}>
+        {children}
+      </AuthContext.Provider>
   );
 };
