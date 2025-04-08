@@ -83,15 +83,16 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
     localStorage.setItem('token', token);
     localStorage.setItem('encryptionSalt', salt);
     setToken(token);
-
     const saltWA = CryptoJS.enc.Hex.parse(salt);
-    const key = CryptoJS.PBKDF2(masterPassword, saltWA, {
-      keySize: 256 / 32,
-      iterations: 1000,
-    }).toString();
+    if (!('decryptedKey' in localStorage)) {
+      const key = CryptoJS.PBKDF2(masterPassword, saltWA, {
+        keySize: 256 / 32,
+        iterations: 1000,
+      }).toString();
 
-    setDecryptedKey(key);
-    localStorage.setItem('decryptedKey', key);
+      setDecryptedKey(key);
+      localStorage.setItem('decryptedKey', key);
+    }
   };
 
   // Function to update user state with a new token without altering the decryption key.
