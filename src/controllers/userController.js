@@ -45,7 +45,7 @@ exports.sendVerificationEmail = async (req, res) => {
 
   const insertQuery = `
     INSERT INTO verification_codes (user_id, code, type, expires_at)
-    VALUES (?, ?, 'email_verification', datetime('now', '+10 minutes'))
+    VALUES ($1, $2, 'email_verification', NOW() + INTERVAL '10 minutes')
   `;
   db.run(insertQuery, [userId, code], async function(err) {
     if (err) {
@@ -75,18 +75,18 @@ exports.sendVerificationEmail = async (req, res) => {
 
 exports.verifyEmail = (req, res) => {
   const { userId, code } = req.body;
-  const selectQuery = `SELECT * FROM verification_codes WHERE user_id = ? AND code = ? AND type = 'email_verification' AND expires_at > datetime('now')`;
+  const selectQuery = `SELECT * FROM verification_codes WHERE user_id = $1 AND code = $2 AND type = 'email_verification' AND expires_at > NOW()`;
   db.get(selectQuery, [userId, code], (err, row) => {
     if (err || !row) {
       return res.status(400).json({ message: 'Invalid or expired verification code.' });
     }
-    const updateQuery = `UPDATE users SET is_verified = 1 WHERE id = ?`;
+    const updateQuery = `UPDATE users SET is_verified = 1 WHERE id = $1`;
     db.run(updateQuery, [userId], function (err) {
       if (err) {
         return res.status(500).json({ message: 'Error updating verification status.' });
       }
       // Optionally cleanup the code record
-      db.run(`DELETE FROM verification_codes WHERE id = ?`, [row.id]);
+      db.run(`DELETE FROM verification_codes WHERE id = $1`, [row.id]);
       return res.status(200).json({ message: 'Email verified successfully.' });
     });
   });
@@ -98,7 +98,7 @@ exports.requestAccountDeletion = async (req, res) => {
 
   const insertQuery = `
     INSERT INTO verification_codes (user_id, code, type, expires_at)
-    VALUES (?, ?, 'account_deletion', datetime('now', '+10 minutes'))
+    VALUES ($1, $2, 'account_deletion', NOW() + INTERVAL '10 minutes')
   `;
   db.run(insertQuery, [userId, code], async function (err) {
     if (err) {
@@ -122,18 +122,18 @@ exports.requestAccountDeletion = async (req, res) => {
 
 exports.confirmAccountDeletion = (req, res) => {
   const { userId, code } = req.body;
-  const selectQuery = `SELECT * FROM verification_codes WHERE user_id = ? AND code = ? AND type = 'account_deletion' AND expires_at > datetime('now')`;
+  const selectQuery = `SELECT * FROM verification_codes WHERE user_id = $1 AND code = $2 AND type = 'account_deletion' AND expires_at > NOW()`;
   db.get(selectQuery, [userId, code], (err, row) => {
     if (err || !row) {
       return res.status(400).json({ message: 'Invalid or expired deletion code.' });
     }
-    const deleteUserQuery = `DELETE FROM users WHERE id = ?`;
+    const deleteUserQuery = `DELETE FROM users WHERE id = $1`;
     db.run(deleteUserQuery, [userId], function (err) {
       if (err) {
         return res.status(500).json({ message: 'Error deleting account.' });
       }
       // Clean up any codes for this user.
-      db.run(`DELETE FROM verification_codes WHERE user_id = ?`, [userId]);
+      db.run(`DELETE FROM verification_codes WHERE user_id = $1`, [userId]);
       return res.status(200).json({ message: 'Account deleted successfully.' });
     });
   });
@@ -146,7 +146,7 @@ exports.requestPasswordReset = async (req, res) => {
   const { userId, email } = req.body;
   
   // Check if the user's email is verified.
-  const userQuery = `SELECT is_verified FROM users WHERE id = ?`;
+  const userQuery = `SELECT is_verified FROM users WHERE id = $1`;
   db.get(userQuery, [userId], async (err, userRow) => {
     if (err || !userRow) {
       return res.status(400).json({ message: 'User not found.' });
@@ -158,7 +158,7 @@ exports.requestPasswordReset = async (req, res) => {
     const code = crypto.randomBytes(3).toString('hex');
     const insertQuery = `
       INSERT INTO verification_codes (user_id, code, type, expires_at)
-      VALUES (?, ?, 'password_reset', datetime('now', '+10 minutes'))
+      VALUES ($1, $2, 'password_reset', NOW() + INTERVAL '10 minutes')
     `;
     db.run(insertQuery, [userId, code], async function(err) {
       if (err) {
@@ -196,7 +196,7 @@ exports.confirmPasswordReset = (req, res) => {
   }
   
   // First, check if the user's email is verified.
-  const userQuery = `SELECT is_verified FROM users WHERE id = ?`;
+  const userQuery = `SELECT is_verified FROM users WHERE id = $1`;
   db.get(userQuery, [userId], (err, userRow) => {
     if (err || !userRow) {
       return res.status(400).json({ message: 'User not found.' });
@@ -208,7 +208,7 @@ exports.confirmPasswordReset = (req, res) => {
     // Now, verify the reset code.
     const selectQuery = `
       SELECT * FROM verification_codes 
-      WHERE user_id = ? AND code = ? AND type = 'password_reset' AND expires_at > datetime('now')
+      WHERE user_id = $1 AND code = $2 AND type = 'password_reset' AND expires_at > NOW()
     `;
     db.get(selectQuery, [userId, code], (err, row) => {
       if (err || !row) {
@@ -219,13 +219,13 @@ exports.confirmPasswordReset = (req, res) => {
          if (err) {
            return res.status(500).json({ message: 'Error hashing password.' });
          }
-         const updateQuery = `UPDATE users SET password = ? WHERE id = ?`;
+         const updateQuery = `UPDATE users SET password = $1 WHERE id = $2`;
          db.run(updateQuery, [hashedPassword, userId], function(err) {
             if (err) {
               return res.status(500).json({ message: 'Error updating password.' });
             }
             // Clean up the used code.
-            db.run(`DELETE FROM verification_codes WHERE id = ?`, [row.id]);
+            db.run(`DELETE FROM verification_codes WHERE id = $1`, [row.id]);
             return res.status(200).json({ message: 'Password updated successfully.' });
          });
       });
