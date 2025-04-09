@@ -398,16 +398,20 @@ const Dashboard: React.FC = () => {
                         onClick={() => setShowFormPassword((prev) => !prev)}
                         whileHover={{ scale: 1.1 }}
                         whileTap={{ scale: 0.9 }}
-                        className="flex items-center justify-center w-12 h-12 bg-indigo-600 text-white rounded-md shadow-md hover:bg-indigo-700 focus:outline-none"
-                        title={showFormPassword ? 'Hide Password' : 'Show Password'}
+                        className="flex items-center justify-center w-12 h-12 bg-indigo-600 text-white rounded-md shadow-md hover:bg-indigo-700 focus:outline-none group relative"
                       >
                         {showFormPassword ? <FiEyeOff size={20} /> : <FiEye size={20} />}
+                        <span className="absolute bottom-full mb-2 w-32 bg-white/20 backdrop-blur-md text-white text-xs rounded py-1 px-2 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                          {showFormPassword ? 'Hide password' : 'Show password'}
+                        </span>
                       </motion.button>
-                      <PasswordGenerator
-                        setPassword={(pwd: string) =>
-                          setForm((prev) => ({ ...prev, password: pwd }))
-                        }
-                      />
+                      <div className="relative group">
+                        <PasswordGenerator
+                          setPassword={(pwd: string) =>
+                            setForm((prev) => ({ ...prev, password: pwd }))
+                          }
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
