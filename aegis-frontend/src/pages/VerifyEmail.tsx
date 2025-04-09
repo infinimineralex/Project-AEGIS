@@ -29,12 +29,16 @@ const VerifyEmail: React.FC = () => {
         { userId: user.id, code: verificationCode },
         { headers: { Authorization: token ? `Bearer ${token}` : undefined } }
       );
+      
+      // Update user state with verification status and redirect to dashboard
+      if (response.data.token) {
+        updateUser(response.data.token);
+        setVerificationCode('');
+        navigate('/dashboard'); // Redirect to dashboard after successful verification
+      }
+      
       setVerifyMessage(response.data.message);
       setVerifyError('');
-      // Update user state with the new token returned from verification
-      if(response.data.token){
-        updateUser(response.data.token);
-      }
     } catch (err: any) {
       const errMsg = err.response?.data?.message || 'Verification failed.';
       setVerifyError(errMsg);

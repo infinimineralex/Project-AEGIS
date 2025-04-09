@@ -3,6 +3,7 @@ const nodemailer = require('nodemailer');
 const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
 const { google } = require('googleapis');
+const jwt = require('jsonwebtoken');
 
 const OAuth2 = google.auth.OAuth2;
 
@@ -80,14 +81,32 @@ exports.verifyEmail = (req, res) => {
     if (err || !row) {
       return res.status(400).json({ message: 'Invalid or expired verification code.' });
     }
-    const updateQuery = `UPDATE users SET is_verified = 1 WHERE id = $1`;
-    db.run(updateQuery, [userId], function (err) {
+    const updateQuery = `UPDATE users SET is_verified = 1 WHERE id = $1 RETURNING username, email`;
+    db.run(updateQuery, [userId], function (err, result) {
       if (err) {
         return res.status(500).json({ message: 'Error updating verification status.' });
       }
-      // Optionally cleanup the code record
+
+      // Generate a new token with updated verification status
+      const user = result.rows[0];
+      const token = jwt.sign(
+        { 
+          id: userId, 
+          username: user.username, 
+          email: user.email,
+          is_verified: 1
+        },
+        process.env.JWT_SECRET,
+        { expiresIn: '2h' }
+      );
+
+      // Cleanup the code record
       db.run(`DELETE FROM verification_codes WHERE id = $1`, [row.id]);
-      return res.status(200).json({ message: 'Email verified successfully.' });
+      
+      return res.status(200).json({ 
+        message: 'Email verified successfully.',
+        token: token
+      });
     });
   });
 };

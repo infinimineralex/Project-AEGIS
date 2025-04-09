@@ -127,9 +127,8 @@ const Dashboard: React.FC = () => {
   };
 
   useEffect(() => {
-    if (!token) return;
     fetchCredentials();
-  }, [token]);
+  }, []);
 
   // Handle form changes
   const handleChange = (
