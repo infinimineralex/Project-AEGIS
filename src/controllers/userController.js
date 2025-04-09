@@ -8,70 +8,49 @@ const jwt = require('jsonwebtoken');
 const OAuth2 = google.auth.OAuth2;
 
 async function getTransporter() {
-  const oauth2Client = new OAuth2(
-    process.env.CLIENT_ID,
-    process.env.CLIENT_SECRET,
-    "https://developers.google.com/oauthplayground"
-  );
-  oauth2Client.setCredentials({
-    refresh_token: process.env.REFRESH_TOKEN,
-  });
-
-  const accessToken = await new Promise((resolve, reject) => {
-    oauth2Client.getAccessToken((err, token) => {
-      if (err) {
-        return reject("Failed to create access token :(");
+  try {
+    return nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.EMAIL,
+        pass: process.env.EMAIL_PASS
       }
-      resolve(token);
     });
-  });
-
-  return nodemailer.createTransport({
-    service: 'gmail',
-    auth: { // re-enable OAuth2 for security purposes later
-      // type: 'OAuth2',
-      user: process.env.EMAIL,
-      pass: process.env.EMAIL_PASS,
-      // clientId: process.env.CLIENT_ID,
-      // clientSecret: process.env.CLIENT_SECRET,
-      // refreshToken: process.env.REFRESH_TOKEN,
-      // accessToken: accessToken,
-    },
-  });
+  } catch (error) {
+    console.error('Transporter creation error:', error);
+    throw new Error('Failed to create email transporter');
+  }
 }
 
 exports.sendVerificationEmail = async (req, res) => {
   const { userId, email } = req.body;
   const code = crypto.randomBytes(3).toString('hex');
 
-  const insertQuery = `
-    INSERT INTO verification_codes (user_id, code, type, expires_at)
-    VALUES ($1, $2, 'email_verification', NOW() + INTERVAL '10 minutes')
-  `;
-  db.run(insertQuery, [userId, code], async function(err) {
-    if (err) {
-      return res.status(500).json({ message: 'Error generating verification code.' });
-    }
-    try {
-      const transporter = await getTransporter();
-      transporter.sendMail(
-        {
-          from: process.env.EMAIL,
-          to: email,
-          subject: 'Email Verification Code',
-          text: `Welcome to AEGIS: the future of password management! Your email verification code is: ${code}`,
-        },
-        (err, info) => {
-          if (err) {
-            return res.status(500).json({ message: 'Error sending email.' });
-          }
-          return res.status(200).json({ message: 'Verification email sent.' });
-        }
-      );
-    } catch (error) {
-      return res.status(500).json({ message: 'Failed to create transporter.', error: error.message });
-    }
-  });
+  try {
+    // Generate and store verification code first
+    const insertQuery = `
+      INSERT INTO verification_codes (user_id, code, type, expires_at)
+      VALUES ($1, $2, 'email_verification', NOW() + INTERVAL '10 minutes')
+    `;
+    await db.run(insertQuery, [userId, code]);
+
+    // Then attempt to send email
+    const transporter = await getTransporter();
+    await transporter.sendMail({
+      from: process.env.EMAIL,
+      to: email,
+      subject: 'Email Verification Code',
+      text: `Welcome to AEGIS: the future of password management! Your email verification code is: ${code}`,
+    });
+
+    return res.status(200).json({ message: 'Verification email sent.' });
+  } catch (error) {
+    console.error('Email sending error:', error);
+    return res.status(500).json({ 
+      message: 'Error sending verification email', 
+      error: error.message 
+    });
+  }
 };
 
 exports.verifyEmail = (req, res) => {
