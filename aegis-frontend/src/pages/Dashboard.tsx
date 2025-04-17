@@ -335,6 +335,12 @@ const Dashboard: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
+            {/* Loader for saving credential */}
+            {saving && (
+                  <div className="absolute inset-0 z-40 flex items-center justify-center bg-black/40 rounded-lg">
+                    <Jelly size={40} speed={0.9} color="#fff" />
+                  </div>
+            )}
             {/* Email Verification Overlay */}
             {user && !user.is_verified && (
               <motion.div
@@ -362,12 +368,7 @@ const Dashboard: React.FC = () => {
                 {editing ? 'Edit Credential' : 'Add Credential'}
               </h2>
               <form onSubmit={handleAddOrUpdate} className="space-y-4 relative">
-                {/* Loader for saving credential */}
-                {saving && (
-                  <div className="absolute inset-0 z-40 flex items-center justify-center bg-black/40 rounded-lg">
-                    <Jelly size={40} speed={0.9} color="#fff" />
-                  </div>
-                )}
+                
                 {/* Website Field */}
                 <div>
                   <label htmlFor="website" className="block text-sm font-medium text-gray-300">
