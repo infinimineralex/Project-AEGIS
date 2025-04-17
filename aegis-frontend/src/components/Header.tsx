@@ -20,8 +20,8 @@ const Header: React.FC = () => {
               animate={{ opacity: 1 }}
               transition={{ duration: 2, ease: 'easeOut' }}
             />
-          </Link>
-          <h1 className="ml-3 text-white text-2xl font-bold">Aegis</h1>
+            <h1 className="ml-3 text-white text-2xl font-bold">Aegis</h1>
+          </Link>    
         </div>
 
         {/* Navigation Links */}
