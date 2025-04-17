@@ -10,6 +10,7 @@ import Notification from '../components/Notification';
 import DeleteAccountModal from '../components/DeleteAccountModal';
 import FeedbackPopup from '../components/FeedbackPopup';
 import PasswordStrengthIndicator from '../components/PasswordStrengthIndicator';
+import { FiAlertTriangle } from 'react-icons/fi';
 
 interface Credential {
   id: number;
@@ -28,6 +29,7 @@ const Dashboard: React.FC = () => {
   const [credentials, setCredentials] = useState<Credential[]>([]);
   const [compromisedCredentials, setCompromisedCredentials] = useState<Set<number>>(new Set());
   const [error, setError] = useState<string>('');
+  const [hoveredCompromisedId, setHoveredCompromisedId] = useState<number | null>(null);
 
   const [form, setForm] = useState({
     website: '',
@@ -482,16 +484,20 @@ const Dashboard: React.FC = () => {
                   </thead>
                   <tbody className="divide-y divide-gray-600">
                     {credentials.map((cred) => (
-                      <motion.tr key={cred.id}>
-                        <td className="px-6 py-4 whitespace-nowrap">{cred.website}</td>
-                        <td className="px-6 py-4 whitespace-nowrap">{cred.username}</td>
+                      <motion.tr
+                        key={cred.id}
+                        className={`relative transition-colors duration-200 ${compromisedCredentials.has(cred.id) ? 'bg-red-900/40' : ''}`}
+                      >
+                        <td className="px-6 py-4 whitespace-nowrap text-gray-200">{cred.website}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-gray-200">{cred.username}</td>
                         <td className="px-6 py-4 whitespace-nowrap">
+                          {/* ... Password display/copy/visibility buttons ... */}
                           <div className="flex items-center space-x-2">
                             <span
                               onClick={() => togglePasswordVisibility(cred.id)}
-                              className={`cursor-pointer px-2 py-1 rounded-md ${
+                              className={`cursor-pointer px-2 py-1 rounded-md font-mono ${
                                 visiblePasswordIds.has(cred.id)
-                                  ? 'bg-green-500 text-white'
+                                  ? 'bg-green-600 text-white' 
                                   : 'bg-gray-500 text-gray-300'
                               }`}
                               title="Toggle visibility"
@@ -501,30 +507,49 @@ const Dashboard: React.FC = () => {
                             <button
                               onClick={() => {
                                 navigator.clipboard.writeText(cred.password);
+                                setNotification('Password copied!');
                               }}
-                              className="text-blue-400 hover:text-blue-300"
+                              className="text-blue-400 hover:text-blue-300 p-1 group relative"
                               title="Copy Password"
                             >
                               <FiCopy size={18} />
+                               <span className="absolute bottom-full mb-2 w-auto min-w-max bg-black/70 backdrop-blur-sm text-white text-xs rounded py-1 px-2 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
+                                Copy Password
+                              </span>
                             </button>
                             <button
                               onClick={() => togglePasswordVisibility(cred.id)}
-                              className="text-blue-400 hover:text-blue-300"
+                              className="text-blue-400 hover:text-blue-300 p-1 group relative"
                             >
-                              {visiblePasswordIds.has(cred.id) ? 'Hide' : 'Show'}
+                              {visiblePasswordIds.has(cred.id) ? <FiEyeOff size={18} /> : <FiEye size={18} />}
+                               <span className="absolute bottom-full mb-2 w-auto min-w-max bg-black/70 backdrop-blur-sm text-white text-xs rounded py-1 px-2 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
+                                {visiblePasswordIds.has(cred.id) ? 'Hide Password' : 'Show Password'}
+                              </span>
                             </button>
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">{cred.notes}</td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          {compromisedCredentials.has(cred.id) && (
-                            <span className="text-red-500 font-semibold">Compromised</span>
-                          )}
-                          {!compromisedCredentials.has(cred.id) && (
-                            <span className="text-green-500 font-semibold">Uncompromised</span>
+                        <td className="px-6 py-4 whitespace-nowrap text-gray-300">{cred.notes || '-'}</td>
+
+                        {/* Status Cell - Icon + Tooltip */}
+                        <td className="px-6 py-4 whitespace-nowrap relative">
+                          {compromisedCredentials.has(cred.id) ? (
+                            <div className="flex items-center gap-2 group relative">
+                              <FiAlertTriangle className="text-red-400" aria-label="Compromised" />
+                              <span className="text-red-400 font-semibold cursor-help">
+                                Compromised!
+                              </span>
+                              <span className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 w-max max-w-xs bg-black/80 text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-normal z-30 shadow-lg pointer-events-none">
+                                This password was found in a data breach. You should change it immediately!
+                              </span>
+                            </div>
+                          ) : (
+                            <span className="text-green-400 font-semibold">Secure</span>
                           )}
                         </td>
+                        {/* End Status Cell */}
+
                         <td className="px-6 py-4 whitespace-nowrap">
+                          {/* ... Edit/Delete Buttons ... */}
                           <button
                             onClick={() => handleEdit(cred)}
                             className="text-indigo-400 hover:text-indigo-300 mr-4"

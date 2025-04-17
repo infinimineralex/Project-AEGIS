@@ -74,7 +74,7 @@ const Login: React.FC = () => {
 
   return (
     <div 
-      className="min-h-[calc(100vh-75px)] flex items-center justify-center bg-cover bg-center bg-no-repeat"
+      className="min-h-screen flex items-center justify-center bg-cover bg-center bg-no-repeat"
       style={{ backgroundImage: 'url(background2.jpg)' }}
     >
       
