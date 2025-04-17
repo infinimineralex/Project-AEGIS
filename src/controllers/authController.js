@@ -40,7 +40,11 @@ exports.register = (req, res) => {
             }
 
             // Generate a TOTP secret for 2FA enrollment
-            const twofaSecret = speakeasy.generateSecret({ length: 20 });
+            const twofaSecret = speakeasy.generateSecret({ 
+                length: 20, 
+                name: `AEGIS (${username})`, 
+                issuer: 'AEGIS'
+            });
 
             // Insert new user including the twofa_secret
             const insertUserQuery = `
