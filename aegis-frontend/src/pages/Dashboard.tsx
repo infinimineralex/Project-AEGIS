@@ -11,6 +11,8 @@ import DeleteAccountModal from '../components/DeleteAccountModal';
 import FeedbackPopup from '../components/FeedbackPopup';
 import PasswordStrengthIndicator from '../components/PasswordStrengthIndicator';
 import { FiAlertTriangle } from 'react-icons/fi';
+import { Jelly } from 'ldrs/react';
+import 'ldrs/react/Jelly.css';
 
 interface Credential {
   id: number;
@@ -53,6 +55,10 @@ const Dashboard: React.FC = () => {
   // New state for delete account modal
   const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
 
+  const [loading, setLoading] = useState<boolean>(false);
+  const [saving, setSaving] = useState<boolean>(false);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
+
   // New helper to check if password is pwned
   const checkIfPwned = async (password: string): Promise<boolean> => {
     const hash = CryptoJS.SHA1(password).toString().toUpperCase();
@@ -84,7 +90,7 @@ const Dashboard: React.FC = () => {
       console.warn('No decryption key yet, skipping fetch.');
       return;
     }
-
+    setLoading(true);
     try {
       const response = await api.get('/api/passwords', {
         headers: {
@@ -125,6 +131,8 @@ const Dashboard: React.FC = () => {
     } catch (err: any) {
       setError('Failed to fetch credentials. If you got here by reloading, please do not access this this page with a reload. This is interpreted as malicious. As such, please log in again to see your passwords.');
       console.error(err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -148,6 +156,7 @@ const Dashboard: React.FC = () => {
       return;
     }
 
+    setSaving(true);
     try {
       // Encrypt password
       const encryptedPassword = CryptoJS.AES.encrypt(
@@ -206,6 +215,8 @@ const Dashboard: React.FC = () => {
     } catch (err: any) {
       setError('Failed to save credential.');
       console.error(err);
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -224,6 +235,7 @@ const Dashboard: React.FC = () => {
   // Handle deleting a credential
   const handleDelete = async (id: number) => {
     if (!window.confirm('Are you sure you want to delete this credential?')) return;
+    setDeletingId(id);
     try {
       await api.delete(`/api/passwords/${id}`, {
         headers: {
@@ -236,6 +248,8 @@ const Dashboard: React.FC = () => {
     } catch (err: any) {
       setError('Failed to delete credential.');
       console.error(err);
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -260,9 +274,15 @@ const Dashboard: React.FC = () => {
 
   return (
     <div
-      className="min-h-screen bg-cover bg-center bg-no-repeat p-4"
+      className="min-h-screen bg-cover bg-center bg-no-repeat p-4 relative"
       style={{ backgroundImage: 'url(background2.jpg)' }}
     >
+      {/* Global loader for fetching credentials */}
+      {loading && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <Jelly size={60} speed={0.9} color="#fff" />
+        </div>
+      )}
       <div className="container mx-auto">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold">Dashboard</h1>
@@ -341,7 +361,13 @@ const Dashboard: React.FC = () => {
               <h2 className="text-xl font-semibold mb-4">
                 {editing ? 'Edit Credential' : 'Add Credential'}
               </h2>
-              <form onSubmit={handleAddOrUpdate} className="space-y-4">
+              <form onSubmit={handleAddOrUpdate} className="space-y-4 relative">
+                {/* Loader for saving credential */}
+                {saving && (
+                  <div className="absolute inset-0 z-40 flex items-center justify-center bg-black/40 rounded-lg">
+                    <Jelly size={40} speed={0.9} color="#fff" />
+                  </div>
+                )}
                 {/* Website Field */}
                 <div>
                   <label htmlFor="website" className="block text-sm font-medium text-gray-300">
@@ -558,9 +584,17 @@ const Dashboard: React.FC = () => {
                           </button>
                           <button
                             onClick={() => handleDelete(cred.id)}
-                            className="text-red-400 hover:text-red-300"
+                            className="text-red-400 hover:text-red-300 relative"
+                            disabled={deletingId === cred.id}
                           >
-                            Delete
+                            {deletingId === cred.id ? (
+                              <span className="flex items-center">
+                                <Jelly size={20} speed={1.1} color="#fff" />
+                                <span className="ml-2">Deleting...</span>
+                              </span>
+                            ) : (
+                              'Delete'
+                            )}
                           </button>
                         </td>
                       </motion.tr>

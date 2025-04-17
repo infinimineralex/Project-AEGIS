@@ -3,6 +3,8 @@ import api from '../utils/api';
 import { useNavigate, Link } from 'react-router-dom';
 import { AuthContext } from '../contexts/AuthContext';
 import { motion } from 'framer-motion';
+import { Jelly } from 'ldrs/react';
+import 'ldrs/react/Jelly.css';
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
@@ -14,6 +16,7 @@ const Login: React.FC = () => {
   });
   const [masterPassword, setMasterPassword] = useState<string>('');
   const [error, setError] = useState<string>('');
+  const [loading, setLoading] = useState(false);
 
   // For 2FA
   const [twofaRequired, setTwofaRequired] = useState<boolean>(false);
@@ -40,6 +43,7 @@ const Login: React.FC = () => {
       return;
     }
 
+    setLoading(true);
     try {
       const response = await api.post('/api/auth/login', {
         username: form.username,
@@ -55,11 +59,14 @@ const Login: React.FC = () => {
       }
     } catch (err: any) {
       setError(err.response?.data?.message || 'Login failed.');
+    } finally {
+      setLoading(false);
     }
   };
 
   const handle2faSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
     try {
       const verifyResponse = await api.post('/api/auth/verify-2fa', {
         userId: tempUserId,
@@ -69,14 +76,21 @@ const Login: React.FC = () => {
       navigate('/dashboard');
     } catch (err: any) {
       setError(err.response?.data?.message || '2FA verification failed.');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div 
-      className="min-h-screen flex items-center justify-center bg-cover bg-center bg-no-repeat"
+      className="min-h-screen flex items-center justify-center bg-cover bg-center bg-no-repeat relative"
       style={{ backgroundImage: 'url(background2.jpg)' }}
     >
+      {loading && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <Jelly size={60} speed={0.9} color="#fff" />
+        </div>
+      )}
       
       <motion.div
         className="max-w-md w-full bg-white/20 backdrop-blur-md p-8 shadow-lg rounded"

@@ -20,7 +20,7 @@ const FeedbackPopup: React.FC = () => {
       setTimeout(() => {
         setFeedbackStatus('');
         setIsOpen(false);
-      }, 2000);
+      }, 4000);
     } catch (err: any) {
       //setFeedbackStatus('Failed to send feedback.', err.response?.data?.message);
       setFeedbackStatus(err.response?.data?.message);

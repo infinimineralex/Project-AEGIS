@@ -5,6 +5,8 @@ import { AuthContext } from '../contexts/AuthContext';
 import { motion } from 'framer-motion';
 import { QRCodeSVG } from 'qrcode.react';
 import PasswordStrengthIndicator from '../components/PasswordStrengthIndicator';
+import { Jelly } from 'ldrs/react';
+import 'ldrs/react/Jelly.css';
 
 const MIN_PASSWORD_LENGTH = 4;
 
@@ -22,11 +24,11 @@ const Register: React.FC = () => {
   });
 
   const [error, setError] = useState<string>('');
-  // state for two-factor enrollment
   const [twofaSecret, setTwofaSecret] = useState<string>('');
   const [twofaCode, setTwofaCode] = useState<string>('');
   const [tempUserId, setTempUserId] = useState<number | null>(null);
-  const [step, setStep] = useState<number>(1); // 1: basic info; 2: 2FA verification
+  const [step, setStep] = useState<number>(1);
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -34,7 +36,6 @@ const Register: React.FC = () => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  // Step 1: Submit basic registration info
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -58,6 +59,7 @@ const Register: React.FC = () => {
       return;
     }
 
+    setLoading(true);
     try {
       const response = await api.post('/api/auth/register', {
         username: form.username,
@@ -65,55 +67,60 @@ const Register: React.FC = () => {
         password: form.password,
       });
 
-      // If the response includes a two-factor secret, require 2FA verification.
       if (response.data.twofaSecret) {
         setTwofaSecret(response.data.twofaSecret);
-        setTempUserId(response.data.userId);  // Ensure backend returns the new user’s id.
+        setTempUserId(response.data.userId);
         setStep(2);
         setError('');
       } else {
-        // Otherwise, log in directly.
         login(response.data.token, form.masterPassword, response.data.salt);
         navigate('/dashboard');
       }
     } catch (err: any) {
       setError(err.response?.data?.message || 'Registration failed.');
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Step 2: Verify the 2FA code
   const handleTwofaVerify = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!tempUserId) {
       setError('Temporary user data missing.');
       return;
     }
+    setLoading(true);
     try {
       const verifyResponse = await api.post('/api/auth/verify-2fa', {
         userId: tempUserId,
         token: twofaCode,
       });
-      // After successful 2FA verification, log in the user.
       login(verifyResponse.data.token, form.masterPassword, verifyResponse.data.salt);
       navigate('/dashboard');
     } catch (err: any) {
       setError(err.response?.data?.message || '2FA verification failed.');
+    } finally {
+      setLoading(false);
     }
   };
 
   if (step === 2) {
     return (
       <div 
-        className="min-h-screen w-full flex flex-col items-center justify-center bg-cover bg-center bg-no-repeat"
+        className="min-h-screen w-full flex flex-col items-center justify-center bg-cover bg-center bg-no-repeat relative"
         style={{ backgroundImage: 'url(background2.jpg)' }}
       >
+        {loading && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+            <Jelly size={60} speed={0.9} color="#fff" />
+          </div>
+        )}
         <motion.div
           className="max-w-md w-full bg-white/20 backdrop-blur-md p-8 shadow-lg rounded"
           initial={{ opacity: 0.5, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
         >
-          {/* Progress Bar */}
           <div className="mb-4">
             <div className="text-gray-100 text-sm mb-1">Step 2 of 3: 2FA Verification</div>
             <div className="w-full bg-gray-300 rounded-full h-2">
@@ -158,16 +165,20 @@ const Register: React.FC = () => {
 
   return (
     <div 
-      className="min-h-screen w-full flex items-center justify-center bg-cover bg-center bg-no-repeat"
+      className="min-h-screen w-full flex items-center justify-center bg-cover bg-center bg-no-repeat relative"
       style={{ backgroundImage: 'url(background2.jpg)' }}
     >
+      {loading && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <Jelly size={60} speed={0.9} color="#fff" />
+        </div>
+      )}
       <motion.div
         className="max-w-md w-full bg-white/20 backdrop-blur-md p-8 shadow-lg rounded"
         initial={{ opacity: 0.5, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
       >
-        {/* Progress Bar */}
         <div className="mb-4">
           <div className="text-gray-100 text-sm mb-1">Step 1 of 3: Enter Account Details</div>
           <div className="w-full bg-gray-300 rounded-full h-2">
@@ -179,7 +190,6 @@ const Register: React.FC = () => {
         </h2>
         {error && <div className="mb-4 text-gray-100">{error}</div>}
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Username, Email, Password, Master Password fields remain as before */}
           <div>
             <label
               htmlFor="username"
@@ -198,7 +208,6 @@ const Register: React.FC = () => {
             />
           </div>
 
-          {/* Email Field */}
           <div>
             <label
               htmlFor="email"
@@ -217,7 +226,6 @@ const Register: React.FC = () => {
             />
           </div>
 
-          {/* Password Field */}
           <div>
             <label
               htmlFor="password"
@@ -237,7 +245,6 @@ const Register: React.FC = () => {
             <PasswordStrengthIndicator password={form.password} />
           </div>
 
-          {/* Confirm Password Field */}
           <div>
             <label
               htmlFor="confirmPassword"
@@ -256,7 +263,6 @@ const Register: React.FC = () => {
             />
           </div>
 
-          {/* Master Password Field */}
           <div>
             <label
               htmlFor="masterPassword"
@@ -276,7 +282,6 @@ const Register: React.FC = () => {
             />
           </div>
 
-          {/* Confirm Master Password Field */}
           <div>
             <label
               htmlFor="confirmMasterPassword"

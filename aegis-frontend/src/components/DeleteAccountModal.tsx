@@ -3,6 +3,8 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import api from '../utils/api';
 import { AuthContext } from '../contexts/AuthContext';
+import { Jelly } from 'ldrs/react';
+import 'ldrs/react/Jelly.css';
 
 interface DeleteAccountModalProps {
   onClose: () => void;
@@ -15,9 +17,11 @@ const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({ onClose }) => {
   const [requestSent, setRequestSent] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleRequestCode = async () => {
     if (!user) return;
+    setLoading(true);
     try {
       await api.post(
         '/api/user/request-delete-account',
@@ -26,14 +30,18 @@ const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({ onClose }) => {
       );
       setRequestSent(true);
       setMessage('Deletion code sent to your email.');
+      setError('');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to request deletion code.');
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleConfirmDeletion = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
+    setLoading(true);
     try {
       await api.post(
         '/api/user/confirm-delete-account',
@@ -44,16 +52,20 @@ const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({ onClose }) => {
       navigate('/');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to delete account.');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <motion.div
       className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50"
-      //initial={{ opacity: 0.8 }}
-      //animate={{ opacity: 1 }}
-      //exit={{ opacity: 0.8 }}
     >
+      {loading && (
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm rounded">
+          <Jelly size={50} speed={0.9} color="#fff" />
+        </div>
+      )}
       <motion.div className="bg-white/20 backdrop-blur-md p-6 rounded shadow-md w-96" initial={{ y: -50 }} animate={{ y: 0 }}>
         <h2 className="text-xl font-semibold mb-4">Delete Account</h2>
         {error && <div className="mb-2 text-red-500">{error}</div>}

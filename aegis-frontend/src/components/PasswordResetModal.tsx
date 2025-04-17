@@ -4,6 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import api from '../utils/api';
 import { AuthContext } from '../contexts/AuthContext';
 import PasswordStrengthIndicator from '../components/PasswordStrengthIndicator';
+import { Jelly } from 'ldrs/react';
+import 'ldrs/react/Jelly.css';
 
 interface PasswordResetModalProps {
   onClose: () => void;
@@ -17,9 +19,11 @@ const PasswordResetModal: React.FC<PasswordResetModalProps> = ({ onClose }) => {
   const [newPassword, setNewPassword] = useState('');
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleRequestCode = async () => {
     if (!user) return;
+    setLoading(true);
     try {
       await api.post(
         '/api/user/request-password-reset',
@@ -32,12 +36,15 @@ const PasswordResetModal: React.FC<PasswordResetModalProps> = ({ onClose }) => {
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to send reset code.');
       setMessage('');
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
+    setLoading(true);
     try {
       await api.post(
         '/api/user/confirm-password-reset',
@@ -52,16 +59,23 @@ const PasswordResetModal: React.FC<PasswordResetModalProps> = ({ onClose }) => {
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to reset password.');
       setMessage('');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <motion.div
       className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50"
-      initial={{ opacity: 0.8 }}
+      initial={{ opacity: 1 }}
       animate={{ opacity: 1 }}
-      exit={{ opacity: 0.8 }}
+      exit={{ opacity: 1 }}
     >
+      {loading && (
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm rounded">
+          <Jelly size={50} speed={0.9} color="#fff" />
+        </div>
+      )}
       <motion.div className="bg-white/20 backdrop-blur-md p-6 rounded shadow-md w-96" initial={{ y: -50 }} animate={{ y: 0 }}>
         <h2 className="text-xl font-semibold mb-4 text-white">Reset Password</h2>
         {error && <div className="mb-2 text-red-500">{error}</div>}
