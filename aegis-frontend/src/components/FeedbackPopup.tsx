@@ -2,15 +2,19 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { FiSend } from 'react-icons/fi';
 import api from '../utils/api';
+import { Jelly } from 'ldrs/react';
+import 'ldrs/react/Jelly.css';
 
 const FeedbackPopup: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [rating, setRating] = useState(0);
   const [message, setMessage] = useState('');
   const [feedbackStatus, setFeedbackStatus] = useState<string>('');
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
     try {
       await api.post('/api/feedback', { rating, message });
       setFeedbackStatus('Feedback sent! Thanks!');
@@ -22,8 +26,9 @@ const FeedbackPopup: React.FC = () => {
         setIsOpen(false);
       }, 4000);
     } catch (err: any) {
-      //setFeedbackStatus('Failed to send feedback.', err.response?.data?.message);
       setFeedbackStatus(err.response?.data?.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -31,9 +36,14 @@ const FeedbackPopup: React.FC = () => {
     <div className="fixed bottom-4 right-4 z-50">
       {isOpen ? (
         <motion.div 
-          className="bg-gradient-to-r from-blue-500 to-red-500 backdrop-blur-md p-4 rounded-lg shadow-lg text-white w-80"
+          className="bg-gradient-to-r from-blue-500 to-red-500 backdrop-blur-md p-4 rounded-lg shadow-lg text-white w-80 relative"
           initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
         >
+          {loading && (
+            <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm rounded-lg">
+              <Jelly size={40} speed={0.9} color="#fff" />
+            </div>
+          )}
           <div className="flex justify-between items-center mb-3">
             <h3 className="text-lg font-semibold">Feedback</h3>
             <button onClick={() => setIsOpen(false)} className="text-white text-sm underline">Close</button>

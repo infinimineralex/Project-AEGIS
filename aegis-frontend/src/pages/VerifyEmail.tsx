@@ -6,6 +6,8 @@ import { AuthContext } from '../contexts/AuthContext';
 import DeleteAccountModal from '../components/DeleteAccountModal';
 import PasswordResetModal from '../components/PasswordResetModal';
 import FeedbackPopup from '../components/FeedbackPopup';
+import { Jelly } from 'ldrs/react';
+import 'ldrs/react/Jelly.css';
 
 const VerifyEmail: React.FC = () => {
   const { user, token, updateUser } = useContext(AuthContext);
@@ -16,11 +18,15 @@ const VerifyEmail: React.FC = () => {
   const [verifyError, setVerifyError] = useState('');
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showResetModal, setShowResetModal] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [showCodeField, setShowCodeField] = useState(false);
 
   const handleVerifyEmail = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
     if (!user) {
       setVerifyError('User not found.');
+      setLoading(false);
       return;
     }
     try {
@@ -43,14 +49,19 @@ const VerifyEmail: React.FC = () => {
       const errMsg = err.response?.data?.message || 'Verification failed.';
       setVerifyError(errMsg);
       setVerifyMessage('');
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleSendVerificationCode = async () => {
+    setLoading(true);
     if (!user) {
       setVerifyError('User not found.');
+      setLoading(false);
       return;
     }
+    setShowCodeField(true);
     try {
       const response = await api.post(
         '/api/user/send-verification',
@@ -63,14 +74,21 @@ const VerifyEmail: React.FC = () => {
       const errMsg = err.response?.data?.message || 'Failed to send verification email.';
       setVerifyError(errMsg);
       setVerifyMessage('');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div
-      className="min-h-screen flex items-center justify-center bg-cover bg-center bg-no-repeat"
+      className="min-h-screen flex items-center justify-center bg-cover bg-center bg-no-repeat relative"
       style={{ backgroundImage: 'url(background2.jpg)' }}
     >
+      {loading && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <Jelly size={60} speed={0.9} color="#fff" />
+        </div>
+      )}
       <motion.div className="max-w-md w-full bg-white/20 backdrop-blur-md p-8 shadow-lg rounded space-y-6">
         <h2 className="text-3xl font-extrabold text-white text-center">
           Account Settings
@@ -92,29 +110,32 @@ const VerifyEmail: React.FC = () => {
                     <button
                       onClick={handleSendVerificationCode}
                       className="w-full bg-blue-500 p-2 rounded text-white hover:bg-blue-600 shadow-lg"
+                      disabled={showCodeField}
                     >
                       Send Verification Code
                     </button>
                   </motion.div>
-                  <form onSubmit={handleVerifyEmail} className="space-y-2">
-                    <input
-                      type="text"
-                      value={verificationCode}
-                      onChange={(e) => setVerificationCode(e.target.value)}
-                      placeholder="Enter verification code"
-                      className="w-full p-2 rounded bg-gray-600 border border-gray-500 shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                    />
-                    <motion.div
-                      whileTap={{ scale: 0.95 }}
-                    >
-                      <button
-                        type="submit"
-                        className="w-full bg-gradient-to-r from-blue-500 to-red-500 p-2 rounded text-white hover:bg-gradient-to-l shadow-lg"
+                  {showCodeField && (
+                    <form onSubmit={handleVerifyEmail} className="space-y-2">
+                      <input
+                        type="text"
+                        value={verificationCode}
+                        onChange={(e) => setVerificationCode(e.target.value)}
+                        placeholder="Enter verification code"
+                        className="w-full p-2 rounded bg-gray-600 border border-gray-500 shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                      />
+                      <motion.div
+                        whileTap={{ scale: 0.95 }}
                       >
-                      Verify Email
-                      </button>
-                    </motion.div>
-                  </form>
+                        <button
+                          type="submit"
+                          className="w-full bg-gradient-to-r from-blue-500 to-red-500 p-2 rounded text-white hover:bg-gradient-to-l shadow-lg"
+                        >
+                        Verify Email
+                        </button>
+                      </motion.div>
+                    </form>
+                  )}
                 </div>
                 {verifyMessage && (
                   <p className="text-green-300 mt-2">{verifyMessage}</p>

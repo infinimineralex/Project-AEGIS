@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext } from 'react';
+import React, { useEffect, useState, useContext, useRef } from 'react';
 import api from '../utils/api';
 import { AuthContext } from '../contexts/AuthContext';
 import CryptoJS from 'crypto-js';
@@ -31,8 +31,6 @@ const Dashboard: React.FC = () => {
   const [credentials, setCredentials] = useState<Credential[]>([]);
   const [compromisedCredentials, setCompromisedCredentials] = useState<Set<number>>(new Set());
   const [error, setError] = useState<string>('');
-  const [hoveredCompromisedId, setHoveredCompromisedId] = useState<number | null>(null);
-
   const [form, setForm] = useState({
     website: '',
     username: '',
@@ -42,24 +40,18 @@ const Dashboard: React.FC = () => {
 
   const [editing, setEditing] = useState<boolean>(false);
   const [currentId, setCurrentId] = useState<number | null>(null);
+  const [editPulse, setEditPulse] = useState(false);
+  const [expandedNoteId, setExpandedNoteId] = useState<number | null>(null);
+  const formRef = useRef<HTMLDivElement>(null);
 
-  // State to manage password visibility
   const [visiblePasswordIds, setVisiblePasswordIds] = useState<Set<number>>(new Set());
-
-  // New state to toggle password visibility in the form
   const [showFormPassword, setShowFormPassword] = useState<boolean>(false);
-
-  // New state for notification
   const [notification, setNotification] = useState<string>('');
-
-  // New state for delete account modal
   const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
-
   const [loading, setLoading] = useState<boolean>(false);
   const [saving, setSaving] = useState<boolean>(false);
   const [deletingId, setDeletingId] = useState<number | null>(null);
 
-  // New helper to check if password is pwned
   const checkIfPwned = async (password: string): Promise<boolean> => {
     const hash = CryptoJS.SHA1(password).toString().toUpperCase();
     const prefix = hash.slice(0, 5);
@@ -80,7 +72,6 @@ const Dashboard: React.FC = () => {
     return false;
   };
 
-  // Fetch credentials from backend
   const fetchCredentials = async () => {
     if (!token) {
       setError('Authentication token missing.');
@@ -98,7 +89,6 @@ const Dashboard: React.FC = () => {
         },
       });
 
-      // Decrypt passwords
       const decryptedCredentials: Credential[] = response.data.credentials.map(
         (cred: any) => {
           const bytes = CryptoJS.AES.decrypt(cred.password, decryptedKey!);
@@ -118,7 +108,6 @@ const Dashboard: React.FC = () => {
 
       setCredentials(decryptedCredentials);
 
-      // Check each credential's password with HIBP API
       const compromisedSet = new Set<number>();
       await Promise.all(
         decryptedCredentials.map(async (cred) => {
@@ -140,14 +129,12 @@ const Dashboard: React.FC = () => {
     fetchCredentials();
   }, []);
 
-  // Handle form changes
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  // Handle adding or updating credentials
   const handleAddOrUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -158,14 +145,12 @@ const Dashboard: React.FC = () => {
 
     setSaving(true);
     try {
-      // Encrypt password
       const encryptedPassword = CryptoJS.AES.encrypt(
         form.password,
         decryptedKey
       ).toString();
 
       if (editing && currentId !== null) {
-        // Update existing credential
         await api.put(
           `/api/passwords/${currentId}`,
           {
@@ -184,7 +169,6 @@ const Dashboard: React.FC = () => {
         setCurrentId(null);
         setNotification('Credential updated successfully.');
       } else {
-        // Create new credential
         await api.post(
           '/api/passwords',
           {
@@ -202,10 +186,8 @@ const Dashboard: React.FC = () => {
         setNotification('Credential added successfully.');
       }
 
-      // Refresh credentials
       fetchCredentials();
 
-      // Reset form
       setForm({
         website: '',
         username: '',
@@ -220,7 +202,6 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  // Handle editing a credential
   const handleEdit = (cred: Credential) => {
     setForm({
       website: cred.website,
@@ -230,9 +211,13 @@ const Dashboard: React.FC = () => {
     });
     setEditing(true);
     setCurrentId(cred.id);
+    setEditPulse(true);
+    setTimeout(() => setEditPulse(false), 1000);
+    if (formRef.current) {
+      formRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
   };
 
-  // Handle deleting a credential
   const handleDelete = async (id: number) => {
     if (!window.confirm('Are you sure you want to delete this credential?')) return;
     setDeletingId(id);
@@ -253,7 +238,6 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  // Handle password visibility toggle
   const togglePasswordVisibility = (id: number) => {
     setVisiblePasswordIds((prev) => {
       const newSet = new Set(prev);
@@ -266,7 +250,6 @@ const Dashboard: React.FC = () => {
     });
   };
 
-  // Handle logout
   const handleLogout = () => {
     logout();
     navigate('/');
@@ -277,7 +260,6 @@ const Dashboard: React.FC = () => {
       className="min-h-screen bg-cover bg-center bg-no-repeat p-4 relative"
       style={{ backgroundImage: 'url(background2.jpg)' }}
     >
-      {/* Global loader for fetching credentials */}
       {loading && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
           <Jelly size={60} speed={0.9} color="#fff" />
@@ -306,7 +288,6 @@ const Dashboard: React.FC = () => {
         {error && <div className="mb-4 text-red-500">{error}</div>}
         {user && !user.is_verified && (
           <>
-            {/* Updated progress bar for incomplete registration */}
             <div className="mb-4">
               <div className="text-gray-100 text-sm mb-1">Step 3 of 3: Verify Your Email</div>
               <div className="w-full bg-gray-300 rounded-full h-2">
@@ -326,22 +307,19 @@ const Dashboard: React.FC = () => {
           </>
         )}
 
-        {/* Side-by-Side Layout for Form and Credentials */}
         <div className="flex flex-col md:flex-row gap-6 relative">
-          {/* Credential Form - Always render but may be overlaid */}
           <motion.div
-            className="w-full md:w-1/3 bg-white/20 backdrop-blur-md p-6 rounded-lg shadow-md relative hover:backdrop-blur-lg"
+            ref={formRef}
+            className={`w-full md:w-1/3 bg-white/20 backdrop-blur-md p-6 rounded-lg shadow-md relative hover:backdrop-blur-lg ${editPulse ? 'ring-4 ring-blue-500 animate-pulse' : ''}`}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            {/* Loader for saving credential */}
             {saving && (
                   <div className="absolute inset-0 z-40 flex items-center justify-center bg-black/40 rounded-lg">
                     <Jelly size={40} speed={0.9} color="#fff" />
                   </div>
             )}
-            {/* Email Verification Overlay */}
             {user && !user.is_verified && (
               <motion.div
                 className="absolute inset-0 z-50 flex flex-col items-center justify-center rounded-lg bg-white/30"
@@ -365,11 +343,18 @@ const Dashboard: React.FC = () => {
             )}
             <div className={user && !user.is_verified ? "blur-sm" : ""}>
               <h2 className="text-xl font-semibold mb-4">
-                {editing ? 'Edit Credential' : 'Add Credential'}
+                {editing ? (
+                  <motion.span
+                    initial={{ scale: 1 }}
+                    animate={{ scale: [1.1, 1] }}
+                    transition={{ duration: 0.5 }}
+                    className="text-blue-300"
+                  >
+                    Edit Credential
+                  </motion.span>
+                ) : 'Add Credential'}
               </h2>
               <form onSubmit={handleAddOrUpdate} className="space-y-4 relative">
-                
-                {/* Website Field */}
                 <div>
                   <label htmlFor="website" className="block text-sm font-medium text-gray-300">
                     Website
@@ -385,7 +370,6 @@ const Dashboard: React.FC = () => {
                   />
                 </div>
 
-                {/* Username Field */}
                 <div>
                   <label htmlFor="username" className="block text-sm font-medium text-gray-300">
                     Username
@@ -401,7 +385,6 @@ const Dashboard: React.FC = () => {
                   />
                 </div>
 
-                {/* Password Field with Password Generator */}
                 <div>
                   <label htmlFor="password" className="block text-sm font-medium text-gray-300">
                     Password
@@ -445,7 +428,6 @@ const Dashboard: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Notes Field */}
                 <div>
                   <label htmlFor="notes" className="block text-sm font-medium text-gray-300">
                     Notes (Optional)
@@ -461,7 +443,6 @@ const Dashboard: React.FC = () => {
                   ></textarea>
                 </div>
 
-                {/* Submit Button */}
                 <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.95 }}>
                   <button
                     type="submit"
@@ -474,7 +455,6 @@ const Dashboard: React.FC = () => {
             </div>
           </motion.div>
 
-          {/* Credentials List - No overlay */}
           <motion.div
             className="w-full md:w-2/3 bg-white/20 backdrop-blur-md p-6 rounded-lg shadow-md hover:backdrop-blur-lg"
             initial={{ opacity: 0, y: 20 }}
@@ -509,7 +489,7 @@ const Dashboard: React.FC = () => {
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-600">
+                  <tbody className="divide-y divide-gray-500">
                     {credentials.map((cred) => (
                       <motion.tr
                         key={cred.id}
@@ -518,7 +498,6 @@ const Dashboard: React.FC = () => {
                         <td className="px-6 py-4 whitespace-nowrap text-gray-200">{cred.website}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-gray-200">{cred.username}</td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          {/* ... Password display/copy/visibility buttons ... */}
                           <div className="flex items-center space-x-2">
                             <span
                               onClick={() => togglePasswordVisibility(cred.id)}
@@ -555,9 +534,34 @@ const Dashboard: React.FC = () => {
                             </button>
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-gray-300">{cred.notes || '-'}</td>
-
-                        {/* Status Cell - Icon + Tooltip */}
+                        <td className="px-6 py-4 whitespace-nowrap text-gray-300 cursor-pointer max-w-xs" onClick={() => setExpandedNoteId(cred.id)}>
+                          {cred.notes && cred.notes.length > 10 ? (
+                            <span title="Click to expand">
+                              {expandedNoteId === cred.id
+                                ? cred.notes.slice(0, 10) + '...'
+                                : cred.notes.slice(0, 10) + '...'} {/*do not change for now, may change rendering*/}
+                            </span>
+                          ) : (
+                            cred.notes || '-'
+                          )}
+                          <AnimatePresence>
+                            {expandedNoteId === cred.id && cred.notes && cred.notes.length > 10 && (
+                              <motion.div
+                                initial={{ opacity: 1, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 1, scale: 0.95 }}
+                                className="fixed inset-0 z-50 flex items-center justify-center"
+                                onClick={() => setExpandedNoteId(null)}
+                              >
+                                <div className="bg-gradient-to-r from-blue-500 to-red-500 rounded-lg p-6 max-w-lg w-full shadow-xl relative" onClick={e => e.stopPropagation()}>
+                                  <h3 className="text-lg font-semibold mb-2 text-white text-shadow-xl">Full Note: </h3>
+                                  <div className="text-white whitespace-pre-wrap break-words max-h-96 overflow-y-auto">{cred.notes}</div>
+                                  <button className="mt-4 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 shadow-lg" onClick={() => setExpandedNoteId(null)}>Close</button>
+                                </div>
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
+                        </td>
                         <td className="px-6 py-4 whitespace-nowrap relative">
                           {compromisedCredentials.has(cred.id) ? (
                             <div className="flex items-center gap-2 group relative">
@@ -573,10 +577,7 @@ const Dashboard: React.FC = () => {
                             <span className="text-green-400 font-semibold">Secure</span>
                           )}
                         </td>
-                        {/* End Status Cell */}
-
                         <td className="px-6 py-4 whitespace-nowrap">
-                          {/* ... Edit/Delete Buttons ... */}
                           <button
                             onClick={() => handleEdit(cred)}
                             className="text-indigo-400 hover:text-indigo-300 mr-4"
