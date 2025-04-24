@@ -303,7 +303,7 @@ const Register: React.FC = () => {
           <motion.div whileTap={{ scale: 1.05 }} whileHover={{ scale: 1.02 }}>
             <button
               type="submit"
-              className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-white bg-gradient-to-r from-blue-500 to-red-500 hover:bg-gradient-to-l focus:outline-none"
+              className="w-full flex justify-center py-2 px-4 rounded-md shadow-sm text-white bg-gradient-to-r from-blue-500 to-red-500 hover:bg-gradient-to-l focus:outline-none"
             >
               Register
             </button>
