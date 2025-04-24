@@ -57,7 +57,7 @@ At **Aegis**, security is top priority. I have implemented a robust security pip
 ### **3. Encryption: Safeguarding Your Passwords**
 
 - **Client-Side Encryption:** Before storing, passwords are encrypted on the client side using AES-256 via the `crypto-js` library. The master password derives the encryption key using SHA-256, ensuring only you can decrypt your data.
-- **Secure Storage:** Encrypted passwords are stored in a SQLite database. Since decryption happens only on the client side, even if the database is compromised, the data remains unreadable.
+- **Secure Storage:** Encrypted passwords are stored in a Railway-hosted PostgreSQL database. Since decryption happens only on the client side, even if the database is compromised, the data remains unreadable.
 
 ### **4. JWT Security**
 
@@ -82,7 +82,8 @@ At **Aegis**, security is top priority. I have implemented a robust security pip
 
 - **Node.js**
 - **Express.js**
-- **SQLite**
+- **Railway-hosted PostgreSQL**
+- **SQLite Backup**
 - **bcryptjs**
 - **jsonwebtoken**
 - **dotenv**
@@ -101,7 +102,7 @@ At **Aegis**, security is top priority. I have implemented a robust security pip
    - Manages authentication, authorization, and API endpoints for CRUD operations on credentials.
    - Stores hashed passwords and encrypted credentials in SQLite.
 
-3. **Database (SQLite):**
+3. **Database (PostgreSQL):**
    - Stores user information and encrypted credentials.
    - Ensures data integrity and isolation between users.
 
@@ -207,6 +208,7 @@ This project is licensed under the [MIT License](LICENSE).
 - [Framer Motion](https://www.framer.com/motion/)
 - [Node.js](https://nodejs.org/)
 - [Express.js](https://expressjs.com/)
+- [Railway](https://railway.com)
 - [SQLite](https://www.sqlite.org/index.html)
 - [bcryptjs](https://github.com/dcodeIO/bcrypt.js)
 - [jsonwebtoken](https://github.com/auth0/node-jsonwebtoken)

@@ -8,7 +8,7 @@ import PasswordStrengthIndicator from '../components/PasswordStrengthIndicator';
 import { Jelly } from 'ldrs/react';
 import 'ldrs/react/Jelly.css';
 
-const MIN_PASSWORD_LENGTH = 4;
+const MIN_PASSWORD_LENGTH = 8;
 
 const Register: React.FC = () => {
   const navigate = useNavigate();
