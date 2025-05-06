@@ -160,7 +160,7 @@ cd aegis-frontend
 npm install
 
 # Create a .env file in the frontend directory and add the following:
-# VITE_API_BASE_URL=http://localhost:5000
+# VITE_API_BASE_URL=http://localhost:5173
 
 # Start the frontend development server
 npm run dev
