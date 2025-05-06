@@ -87,7 +87,7 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
     if (!('decryptedKey' in localStorage)) {
       const key = CryptoJS.PBKDF2(masterPassword, saltWA, {
         keySize: 256 / 32,
-        iterations: 1000,
+        iterations: 310000,
       }).toString();
 
       setDecryptedKey(key);
