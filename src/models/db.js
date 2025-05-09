@@ -4,8 +4,8 @@ require('dotenv').config();
 const pool = new Pool({
   connectionString: process.env.DATABASE_PUBLIC_URL,
   ssl: {
-    // Depending on the Railway settings, I may need this:
-    rejectUnauthorized: true
+    // false as I haven't created full cert:
+    rejectUnauthorized: false
   }
 });
 
