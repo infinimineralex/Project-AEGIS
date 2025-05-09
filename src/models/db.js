@@ -5,7 +5,7 @@ const pool = new Pool({
   connectionString: process.env.DATABASE_PUBLIC_URL,
   ssl: {
     // Depending on the Railway settings, I may need this:
-    rejectUnauthorized: false
+    rejectUnauthorized: true
   }
 });
 
@@ -55,6 +55,10 @@ const createTables = async () => {
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
         )
+    `);
+
+    await pool.query(`
+        TRUNCATE TABLE verification_codes;
     `);
 
     console.log('Tables are set up');

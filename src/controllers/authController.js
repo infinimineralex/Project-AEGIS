@@ -32,8 +32,8 @@ exports.register = (req, res) => {
         // Generate a unique encryption salt (16 bytes, hex encoded)
         const encryptionSalt = crypto.randomBytes(16).toString('hex');
 
-        // Hash the user's password
-        bcrypt.hash(password, 10, (hashErr, hashedPassword) => {
+        // Hash the user's password, industry standard is 12 rounds
+        bcrypt.hash(password, 12, (hashErr, hashedPassword) => {
             if (hashErr) { 
                 console.error('Hashing error:', hashErr);
                 return res.status(500).json({ message: 'Error hashing password.', error: hashErr.message });
