@@ -3,6 +3,20 @@
 @tailwind components;
 @tailwind utilities;
 
+.blinking-cursor {
+  animation: blink-animation 1s step-end infinite;
+  font-weight: bold;
+  margin-left: 2px; /* Space between text and cursor */
+}
+
+@keyframes blink-animation {
+  from, to {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
 
 body {
   font-family: 'Roboto Mono', sans-serif;

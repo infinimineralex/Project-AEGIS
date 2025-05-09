@@ -5,13 +5,15 @@ interface TypingTextProps {
   typingSpeed?: number;
   deletingSpeed?: number;
   delayBetweenWords?: number;
+  className?: string; // Allow passing className for styling the text itself
 }
 
 const TypingText: React.FC<TypingTextProps> = ({
   words,
   typingSpeed = 150,
   deletingSpeed = 100,
-  delayBetweenWords = 2000,
+  delayBetweenWords = 2000, // This will be overridden by the prop in Home.tsx if different
+  className,
 }) => {
   const [displayText, setDisplayText] = useState('');
   const [wordIndex, setWordIndex] = useState(0);
@@ -43,12 +45,23 @@ const TypingText: React.FC<TypingTextProps> = ({
       // Finished deleting, move to next word
       setIsDeleting(false);
       setWordIndex((prev) => (prev + 1) % words.length);
+      // displayText is already empty from the previous step
     }
 
     return () => clearTimeout(timeout);
   }, [charIndex, isDeleting, words, wordIndex, typingSpeed, deletingSpeed, delayBetweenWords]);
 
-  return <span>{displayText}</span>;
+  return (
+    <span 
+      className={className} 
+      // Apply min-height and inline-block to stabilize height
+      // '1em' will be relative to the parent's font size (the h1's text-8xl)
+      style={{ minHeight: '1em', display: 'inline-block', verticalAlign: 'bottom' }} 
+    >
+      {displayText}
+      <span className="blinking-cursor">|</span>
+    </span>
+  );
 };
 
 export default TypingText;

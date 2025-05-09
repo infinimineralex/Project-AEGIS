@@ -40,6 +40,8 @@ const Home: React.FC = () => {
             delayBetweenWords={1000}
           />
         </h1>
+
+        
         <p className="mx-auto max-w-[42rem] leading-normal text-muted-foreground sm:text-xl sm:leading-8">
         Aegis is your trusted password manager, offering top-tier security, seamless usability, and powerful features to keep your digital life safe and organized.
         </p>
@@ -59,39 +61,6 @@ const Home: React.FC = () => {
             </Link>
           </div>
     </section>
-        {/*<section className="text-center mb-16">
-          
-          <motion.h1
-            className="text-8xl tracking-tight font-extrabold text-indigo-500 mb-6"
-            initial={{ y: -50, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 1 }}
-          >
-            THE FUTURE OF PASSWORD MANAGEMENT
-          </motion.h1>
-          <motion.p
-            className="text-2xl text-gray-300 max-w-3xl mx-auto mb-8"
-            initial={{ y: 50, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 1, delay: 0.5 }}
-          >
-            Aegis is your trusted password manager, offering top-tier security, seamless usability, and powerful features to keep your digital life safe and organized.
-          </motion.p>
-          <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <Link
-              to="/register"
-              className="px-8 py-4 bg-white text-indigo-500 font-bold rounded-lg shadow-md hover:bg-gray-200 transition-colors"
-            >
-              Get Started
-            </Link>
-            <Link
-              to="/login"
-              className="px-8 py-4 bg-transparent border border-white text-white font-bold rounded-lg shadow-md hover:bg-white hover:text-indigo-500 transition-colors"
-            >
-              Login
-            </Link>
-          </div>
-        </section>*/}
 
         {/* Features Section */}
         <section className="w-full max-w-6xl mb-16">
